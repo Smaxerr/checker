@@ -252,18 +252,18 @@ async def process_ovo_cards(message: Message, state: FSMContext):
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
 
+    results = []
     for card in cards:
-        result, screenshot = await run_ovocharger(card)
-        await message.answer(result)
-
-        if screenshot:
+        result, screenshot_bytes = await run_ovocharger(card)
+        if screenshot_bytes:
             bio = BytesIO(screenshot_bytes)
             bio.name = "screenshot.png"
             bio.seek(0)
-            
             photo = BufferedInputFile(bio, filename="screenshot.png")
             await message.answer_photo(photo=photo)
+        results.append(result)
 
+    await message.answer("\n".join(results))
     await state.clear()
 
 # Royalmail Charger flow FSM
@@ -379,6 +379,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
