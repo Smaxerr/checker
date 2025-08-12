@@ -1,237 +1,191 @@
-# bot.py
-import os
-import sys
+import logging
 import asyncio
-import base64
-import io
-from datetime import datetime
 
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters.command import Command
+from aiogram.filters.callback_data import CallbackData
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
-from database import init_db, add_user_if_not_exists, get_user, update_user_field, deduct_credits_if_enough, add_credits, get_all_users
-import config
+import database
+from ovocharger import run_ovocharger
+from royalmailcharger import run_royalmailcharger
 
-BOT_TOKEN = config.BOT_TOKEN
-ADMIN_IDS = config.ADMIN_IDS
-PYTHON_EXEC = config.PYTHON_EXECUTABLE or sys.executable
+API_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
 
-if not BOT_TOKEN or BOT_TOKEN == "YOUR_TELEGRAM_BOT_TOKEN_HERE":
-    print("Please set your BOT_TOKEN in config.py")
-    sys.exit(1)
+# Put your Telegram admin IDs here
+ADMINS = {123456789, 987654321}
 
-bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+logging.basicConfig(level=logging.INFO)
+
+bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher(storage=MemoryStorage())
 
-# FSM states
-class SettingsStates(StatesGroup):
-    waiting_for_email = State()
-    waiting_for_ovo_id = State()
-    waiting_for_ovo_amount = State()
-    waiting_for_settings_line = State()
+class MainMenuCD(CallbackData, prefix="menu"):
+    action: str
 
-class ChargerStates(StatesGroup):
+class SettingsStates(StatesGroup):
+    waiting_for_field = State()
+    waiting_for_value = State()
+
+class OvoChargerStates(StatesGroup):
     waiting_for_cards = State()
 
-# remember which charger user selected
-USER_PENDING_JOB = {}
+class RoyalMailChargerStates(StatesGroup):
+    waiting_for_cards = State()
 
-# keyboards
-def main_kb():
-    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(types.KeyboardButton("Ovo Charger"), types.KeyboardButton("Royalmail Charger"))
-    kb.add(types.KeyboardButton("Settings"))
+# Keyboards
+def main_menu_kb():
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Ovo Charger", callback_data=MainMenuCD(action="ovo"))],
+        [InlineKeyboardButton(text="Royalmail Charger", callback_data=MainMenuCD(action="royalmail"))],
+        [InlineKeyboardButton(text="Settings", callback_data=MainMenuCD(action="settings"))]
+    ])
     return kb
 
 def settings_kb():
-    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(types.KeyboardButton("Edit Email"), types.KeyboardButton("Edit Ovo ID"))
-    kb.add(types.KeyboardButton("Edit Ovo Amount"), types.KeyboardButton("Back to Main"))
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Edit Email", callback_data="edit_email")],
+        [InlineKeyboardButton(text="Edit Ovo ID", callback_data="edit_ovoid")],
+        [InlineKeyboardButton(text="Edit Ovo Amount", callback_data="edit_ovoamount")],
+        [InlineKeyboardButton(text="Back to Menu", callback_data="back_main")]
+    ])
     return kb
 
-@dp.message(Command("start"))
-async def cmd_start(m: types.Message, state: FSMContext):
-    init_db()
-    add_user_if_not_exists(m.from_user.id, m.from_user.full_name)
-    await m.answer("Welcome — choose an option:", reply_markup=main_kb())
-
-# Settings menu
-@dp.message(lambda message: message.text == "Settings")
-async def settings_menu(message: types.Message):
-    await message.answer("Settings menu:", reply_markup=settings_kb())
-
-@dp.message(lambda message: message.text == "Edit Email")
-async def edit_email(message: types.Message, state: FSMContext):
-    await message.answer("Send your new Email (single line):")
-    await state.set_state(SettingsStates.waiting_for_email)
-
-@dp.message(SettingsStates.waiting_for_email)
-async def save_email(message: types.Message, state: FSMContext):
-    update_user_field(message.from_user.id, "email", message.text.strip())
-    await state.clear()
-    await message.answer("✅ Email updated.", reply_markup=settings_kb())
-
-@dp.message(lambda message: message.text == "Edit Ovo ID")
-async def edit_ovo_id(message: types.Message, state: FSMContext):
-    await message.answer("Send your new Ovo ID (single line):")
-    await state.set_state(SettingsStates.waiting_for_ovo_id)
-
-@dp.message(SettingsStates.waiting_for_ovo_id)
-async def save_ovo_id(message: types.Message, state: FSMContext):
-    update_user_field(message.from_user.id, "ovo_id", message.text.strip())
-    await state.clear()
-    await message.answer("✅ Ovo ID updated.", reply_markup=settings_kb())
-
-@dp.message(lambda message: message.text == "Edit Ovo Amount")
-async def edit_ovo_amount(message: types.Message, state: FSMContext):
-    await message.answer("Send your new Ovo Amount (single line):")
-    await state.set_state(SettingsStates.waiting_for_ovo_amount)
-
-@dp.message(SettingsStates.waiting_for_ovo_amount)
-async def save_ovo_amount(message: types.Message, state: FSMContext):
-    update_user_field(message.from_user.id, "ovo_amount", message.text.strip())
-    await state.clear()
-    await message.answer("✅ Ovo Amount updated.", reply_markup=settings_kb())
-
-@dp.message(lambda message: message.text == "Back to Main")
-async def back_to_main(message: types.Message):
-    await message.answer("Main menu:", reply_markup=main_kb())
-
-# Charger selection
-@dp.message(lambda message: message.text == "Ovo Charger")
-async def start_ovo(message: types.Message, state: FSMContext):
-    USER_PENDING_JOB[message.from_user.id] = "ovocharger.py"
+@dp.message(Command(commands=["start"]))
+async def cmd_start(message: Message):
+    await database.add_or_update_user(message.from_user.id, message.from_user.full_name)
+    user_data = await database.get_user(message.from_user.id)
+    credits = user_data[5] if user_data else 0
     await message.answer(
-        "Send card(s) — one per line in format:\ncardnumber|mm|yyyy|cvv\n\n"
-        "Example:\n4242424242424242|12|2026|123\n\n"
-        "Multiple lines = multiple jobs. Each job costs 1 credit on success.\n", 
-        reply_markup=types.ReplyKeyboardRemove()
+        f"Welcome, <b>{message.from_user.full_name}</b>!\nCredits: <b>{credits}</b>",
+        reply_markup=main_menu_kb()
     )
-    await state.set_state(ChargerStates.waiting_for_cards)
 
-@dp.message(lambda message: message.text == "Royalmail Charger")
-async def start_royalmail(message: types.Message, state: FSMContext):
-    USER_PENDING_JOB[message.from_user.id] = "royalmailcharger.py"
-    await message.answer(
-        "Send card(s) — one per line in format:\ncardnumber|mm|yyyy|cvv\n\n"
-        "Multiple lines = multiple jobs. Each job costs 1 credit on success.\n",
-        reply_markup=types.ReplyKeyboardRemove()
-    )
-    await state.set_state(ChargerStates.waiting_for_cards)
+@dp.callback_query(MainMenuCD.filter())
+async def main_menu_handler(callback: CallbackQuery, callback_data: MainMenuCD, state: FSMContext):
+    await callback.answer()
+    if callback_data.action == "ovo":
+        await callback.message.answer("Please send your test card details (format: cardnumber|expirymonth|expiryyear|cvv). You can send multiple lines.")
+        await state.set_state(OvoChargerStates.waiting_for_cards)
+    elif callback_data.action == "royalmail":
+        await callback.message.answer("Please send your test card details for Royalmail (format: cardnumber|expirymonth|expiryyear|cvv). Multiple lines allowed.")
+        await state.set_state(RoyalMailChargerStates.waiting_for_cards)
+    elif callback_data.action == "settings":
+        await callback.message.edit_text("Settings Menu:", reply_markup=settings_kb())
 
-async def run_script_get_screenshot(script_name: str, card_line: str, user: dict) -> tuple[bool, bytes, str]:
-    """
-    Run the script as subprocess, expecting base64 PNG on stdout when successful.
-    Returns (success, image_bytes or b'', error_text)
-    """
-    args = [PYTHON_EXEC, script_name, card_line, user.get("email",""), user.get("ovo_id",""), user.get("ovo_amount","")]
-    proc = await asyncio.create_subprocess_exec(
-        *args,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await proc.communicate()
-    if proc.returncode == 0 and stdout:
-        try:
-            b64 = stdout.decode()
-            img = base64.b64decode(b64)
-            return True, img, ""
-        except Exception as e:
-            return False, b"", f"decoding error: {e}"
-    else:
-        err = stderr.decode().strip() or stdout.decode().strip()
-        return False, b"", err or f"returncode {proc.returncode}"
+@dp.callback_query(F.data == "back_main")
+async def back_to_main(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text("Main Menu:", reply_markup=main_menu_kb())
 
-@dp.message(ChargerStates.waiting_for_cards)
-async def handle_cards(message: types.Message, state: FSMContext):
-    user_id = message.from_user.id
-    user = get_user(user_id)
-    if not user:
-        await message.answer("User not found. Please /start.")
+@dp.callback_query(F.data.startswith("edit_"))
+async def edit_setting(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    field = callback.data.split("_")[1]  # email, ovoid, ovoamount
+    await state.update_data(field=field)
+    await callback.message.answer(f"Send new value for <b>{field}</b>:")
+    await state.set_state(SettingsStates.waiting_for_value)
+
+@dp.message(SettingsStates.waiting_for_value)
+async def save_setting(message: Message, state: FSMContext):
+    data = await state.get_data()
+    field = data.get("field")
+    value = message.text.strip()
+    await database.update_user_field(message.from_user.id, field, value)
+    await message.answer(f"Updated {field} to: <b>{value}</b>")
+    await message.answer("Back to main menu:", reply_markup=main_menu_kb())
+    await state.clear()
+
+@dp.message(OvoChargerStates.waiting_for_cards)
+async def handle_ovocharger_cards(message: Message, state: FSMContext):
+    cards = message.text.strip().splitlines()
+    user_data = await database.get_user(message.from_user.id)
+    credits = user_data[5] if user_data else 0
+    if credits < len(cards):
+        await message.answer(f"Insufficient credits. You have {credits} credits but sent {len(cards)} cards.")
         await state.clear()
         return
 
-    lines = [l.strip() for l in message.text.splitlines() if l.strip()]
-    if not lines:
-        await message.answer("No card lines detected. Cancelling.", reply_markup=main_kb())
-        await state.clear()
-        return
+    await message.answer(f"Processing {len(cards)} Ovo cards, this may take a while...")
 
-    count = len(lines)
-    # check & deduct upfront
-    ok = deduct_credits_if_enough(user_id, count)
-    if not ok:
-        await message.answer(f"Insufficient credits. You need {count} credits to run {count} job(s). Use /addbalance (admins) or get credits.", reply_markup=main_kb())
-        await state.clear()
-        return
-
-    await message.answer(f"Running {count} job(s) concurrently... (you were charged {count} credits up front; failed jobs will be refunded).", reply_markup=main_kb())
-
-    script = USER_PENDING_JOB.get(user_id, "ovocharger.py")
-    # schedule tasks
-    tasks = [run_script_get_screenshot(script, line, user) for line in lines]
-    results = await asyncio.gather(*tasks)
-
-    # process results: for failures, refund 1 credit each; for success — send image
-    refunds = 0
-    for idx, (success, img_bytes, err) in enumerate(results, start=1):
-        if success:
-            # send photo to user
-            bio = io.BytesIO(img_bytes)
-            bio.name = f"screenshot_{idx}.png"
-            bio.seek(0)
-            caption = f"Job {idx} success."
-            try:
-                await bot.send_photo(user_id, photo=bio, caption=caption)
-            except Exception as e:
-                # if sending fails, refund
-                refunds += 1
+    async def run_card(card):
+        result, screenshot = await run_ovocharger(card)
+        text = f"Card: <code>{card}</code>\nResult: {result}"
+        if screenshot:
+            await bot.send_photo(message.chat.id, screenshot, caption=text)
         else:
-            refunds += 1
-            await message.answer(f"Job {idx} failed: {err}")
+            await message.answer(text)
 
-    if refunds:
-        add_credits(user_id, refunds)
-        await message.answer(f"Refunded {refunds} credit(s) due to failures.")
+    await asyncio.gather(*[run_card(card) for card in cards])
 
+    await database.change_credits(message.from_user.id, -len(cards))
+    await message.answer("Done! Credits deducted.", reply_markup=main_menu_kb())
     await state.clear()
 
-# Admin: addbalance
-@dp.message(Command("addbalance"))
-async def cmd_addbalance(message: types.Message):
-    if message.from_user.id not in ADMIN_IDS:
-        await message.answer("❌ You are not an admin.")
+@dp.message(RoyalMailChargerStates.waiting_for_cards)
+async def handle_royalmailcharger_cards(message: Message, state: FSMContext):
+    cards = message.text.strip().splitlines()
+    user_data = await database.get_user(message.from_user.id)
+    credits = user_data[5] if user_data else 0
+    if credits < len(cards):
+        await message.answer(f"Insufficient credits. You have {credits} credits but sent {len(cards)} cards.")
+        await state.clear()
+        return
+
+    await message.answer(f"Processing {len(cards)} Royalmail cards, this may take a while...")
+
+    async def run_card(card):
+        result, screenshot = await run_royalmailcharger(card)
+        text = f"Card: <code>{card}</code>\nResult: {result}"
+        if screenshot:
+            await bot.send_photo(message.chat.id, screenshot, caption=text)
+        else:
+            await message.answer(text)
+
+    await asyncio.gather(*[run_card(card) for card in cards])
+
+    await database.change_credits(message.from_user.id, -len(cards))
+    await message.answer("Done! Credits deducted.", reply_markup=main_menu_kb())
+    await state.clear()
+
+# Admin commands
+
+@dp.message(Command(commands=["addbalance"]))
+async def cmd_addbalance(message: Message):
+    if message.from_user.id not in ADMINS:
+        await message.answer("You are not authorized to use this command.")
         return
     try:
         parts = message.text.split()
-        if len(parts) != 3:
-            raise ValueError()
-        _, tg_id_s, amount_s = parts
-        tg_id = int(tg_id_s)
-        amount = int(amount_s)
-        add_credits(tg_id, amount)
-        await message.answer(f"✅ Added {amount} credits to {tg_id}.")
-    except Exception:
-        await message.answer("Usage: /addbalance <telegram_id> <amount>")
-
-# Admin: viewusers -> sends users.txt
-@dp.message(Command("viewusers"))
-async def cmd_viewusers(message: types.Message):
-    if message.from_user.id not in ADMIN_IDS:
-        await message.answer("❌ You are not an admin.")
+        target_id = int(parts[1])
+        amount = int(parts[2])
+    except (IndexError, ValueError):
+        await message.answer("Usage: /addbalance TELEGRAMID AMOUNT")
         return
-    rows = get_all_users()
+
+    await database.change_credits(target_id, amount)
+    await message.answer(f"Added {amount} credits to user {target_id}.")
+
+@dp.message(Command(commands=["viewusers"]))
+async def cmd_viewusers(message: Message):
+    if message.from_user.id not in ADMINS:
+        await message.answer("You are not authorized to use this command.")
+        return
+
+    users = await database.get_all_users()
     lines = []
-    for r in rows:
-        lines.append(f"{r['telegram_id']}\t{r['telegram_name']}\tcredits:{r['credits']}\temail:{r['email']}\tovo_id:{r['ovo_id']}\tovo_amount:{r['ovo_amount']}")
-    txt = "\n".join(lines) or "no users"
-    await bot.send_document(message.from_user.id, types.InputFile(io.BytesIO(txt.encode()), filename="users.txt"))
+    for u in users:
+        # u = (telegram_id, telegram_name, email, ovo_id, ovo_amount, credits)
+        lines.append(f"{u[0]}\t{u[1]}\t{u[2]}\t{u[3]}\t{u[4]}\t{u[5]}")
+
+    txt = "\n".join(lines)
+    await message.answer_document(("users.txt", txt.encode()))
 
 async def main():
-    init_db()
+    await database.init_db()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
