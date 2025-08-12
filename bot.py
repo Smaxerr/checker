@@ -2,7 +2,7 @@ import os
 import asyncio
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Command, Text
+from aiogram.filters import Command
 import aiosqlite
 
 API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
@@ -137,4 +137,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
