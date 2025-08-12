@@ -97,8 +97,33 @@ async def cmd_start(message: Message):
     
 @dp.callback_query(F.data == "back_main")
 async def back_main_menu(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Main Menu:", reply_markup=main_kb)
+    user_id = callback.from_user.id
+
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute(
+            "SELECT username, ovo_amount FROM users WHERE telegram_id = ?", (user_id,)
+        )
+        row = await cursor.fetchone()
+
+    if row is None:
+        username = callback.from_user.username or callback.from_user.full_name
+        credits = 0
+    else:
+        username, credits = row
+        if not username:
+            username = callback.from_user.username or callback.from_user.full_name
+        if credits is None:
+            credits = 0
+
+    text = (
+        f"Welcome to SmaxChex, @{username}.\n"
+        f"You have {credits} Credits remaining.\n\n"
+        "Use the menu below to continue"
+    )
+
+    await callback.message.edit_text(text, reply_markup=main_kb)
     await state.clear()
+    await callback.answer()
     
 @dp.callback_query(F.data == "settings")
 async def settings_menu(callback: CallbackQuery, state: FSMContext):
@@ -294,6 +319,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
