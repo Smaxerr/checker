@@ -3,6 +3,7 @@ import asyncio
 
 from ovocharger import run_ovocharger
 from royalmailcharger import run_royalmailcharger
+from dpdcharger import run_dpdcharger
 
 from aiogram import Bot, Dispatcher, F
 from io import BytesIO
@@ -33,8 +34,9 @@ DB_NAME = "users.db"
 
 # Main and settings keyboards
 main_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Ovo Charger", callback_data="ovo")],
-    [InlineKeyboardButton(text="Royalmail Charger", callback_data="royalmail")],
+    [InlineKeyboardButton(text="OVO Charger", callback_data="ovo")],
+    [InlineKeyboardButton(text="RoyalMail Charger", callback_data="royalmail")],
+    [InlineKeyboardButton(text="DPD Charger", callback_data="dpd")],
     [InlineKeyboardButton(text="Settings", callback_data="settings")],
 ])
 
@@ -52,6 +54,7 @@ class SettingsStates(StatesGroup):
     waiting_for_ovo_amount = State()
     waiting_for_ovo_cards = State()
     waiting_for_royalmail_cards = State()
+    waiting_for_dpd_cards = State()
 
 HELP_TEXT = """
 🤖 *Bot Setup & Usage Guide*
@@ -250,6 +253,7 @@ async def ovo_charger_start(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
     await state.set_state(SettingsStates.waiting_for_ovo_cards)
     await callback.answer()
+    
 @dp.message(SettingsStates.waiting_for_ovo_cards)
 async def process_ovo_cards(message: Message, state: FSMContext):
     cards = message.text.strip().split("\n")
@@ -272,6 +276,7 @@ async def process_ovo_cards(message: Message, state: FSMContext):
 
     await message.answer("\n".join(results))
     await state.clear()
+    
 # Royalmail Charger flow FSM
 
 @dp.callback_query(F.data == "royalmail")
@@ -287,8 +292,39 @@ async def process_royalmail_cards(message: Message, state: FSMContext):
 
     results = []
     for card in cards:
-        # Run the ovocharger for each card and get result + screenshot
+        # Run the royalmailcharger for each card and get result + screenshot
         result, screenshot_bytes = await run_royalmailcharger(card)
+
+        if screenshot_bytes:
+            # Write bytes to temp file and send photo
+            with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+                tmp.write(screenshot_bytes)
+                tmp.flush()
+                photo = FSInputFile(tmp.name)
+                await message.answer_photo(photo=photo)
+
+        results.append(f"{card}: {result}")
+
+    await message.answer("\n".join(results))
+    await state.clear()
+
+# DPD Charger flow FSM
+
+@dp.callback_query(F.data == "dpd")
+async def dpd_charger_start(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
+    await state.set_state(SettingsStates.waiting_for_dpd_cards)
+    await callback.answer()
+    
+@dp.message(SettingsStates.waiting_for_dpd_cards)
+async def process_dpd_cards(message: Message, state: FSMContext):
+    cards = message.text.strip().split("\n")
+    await message.answer(f"Received {len(cards)} card(s). Processing now...")
+
+    results = []
+    for card in cards:
+        # Run the dpdcharger for each card and get result + screenshot
+        result, screenshot_bytes = await run_dpdcharger(card)
 
         if screenshot_bytes:
             # Write bytes to temp file and send photo
@@ -401,6 +437,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
