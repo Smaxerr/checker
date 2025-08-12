@@ -10,6 +10,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.filters import Command
 from aiogram.types import BotCommand
 from aiogram.fsm.context import FSMContext
+from aiogram.types import InputFile
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import CommandObject
@@ -379,6 +380,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
