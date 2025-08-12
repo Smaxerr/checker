@@ -77,8 +77,7 @@ async def cmd_start(message: Message):
 async def back_main_menu(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Main Menu:", reply_markup=main_kb)
     await state.clear()
-
-@dp.message(Command("settings"))
+@dp.message(lambda message: message.text == "Settings")
 async def settings_menu(message: Message):
     user_id = message.from_user.id
 
@@ -103,7 +102,6 @@ async def settings_menu(message: Message):
     )
 
     await message.answer(profile_text, parse_mode="HTML")
-
 # Settings handlers with FSM
 
 @dp.callback_query(F.data == "set_email")
@@ -271,6 +269,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
