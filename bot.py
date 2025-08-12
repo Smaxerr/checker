@@ -72,11 +72,10 @@ start_kb = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True)
 
-await message.answer("Press Start to begin.", reply_markup=start_kb)
-
 
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
+    await message.answer("Press Start to begin.", reply_markup=start_kb)
     user_id = message.from_user.id
 
     async with aiosqlite.connect(DB_NAME) as db:
@@ -329,6 +328,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
