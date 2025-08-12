@@ -351,7 +351,7 @@ async def main():
     await init_db()
     
     # Register handlers here
-    dp.register_message_handler(help_command, commands=["help"])
+    dp.message.register(help_command, commands=["help"])
     
     commands = [
         BotCommand(command="start", description="Start the bot"),
@@ -362,6 +362,7 @@ async def main():
     await dp.start_polling(bot)
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
