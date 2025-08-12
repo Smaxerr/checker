@@ -4,6 +4,7 @@ import asyncio
 from ovocharger import run_ovocharger
 
 from aiogram import Bot, Dispatcher, F
+from io import BytesIO
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.filters import Command
@@ -249,15 +250,17 @@ async def ovo_charger_start(callback: CallbackQuery, state: FSMContext):
 async def process_ovo_cards(message: Message, state: FSMContext):
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
-    results = []
-    for card in cards:
-        try:
-            result = await run_ovocharger(card)  # call your async charging func
-            results.append(result)
-        except Exception as e:
-            results.append(f"Error processing card {card}: {e}")
 
-    await message.answer("\n".join(results))
+    for card in cards:
+        result, screenshot = await run_ovocharger(card)
+        await message.answer(result)
+        
+        if screenshot:
+            bio = BytesIO(screenshot)
+            bio.name = "screenshot.png"
+            bio.seek(0)
+            await message.answer_photo(photo=bio)
+
     await state.clear()
 
 # Royalmail Charger flow FSM
@@ -373,6 +376,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
