@@ -77,31 +77,12 @@ async def cmd_start(message: Message):
 async def back_main_menu(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Main Menu:", reply_markup=main_kb)
     await state.clear()
-@dp.message(lambda message: message.text == "Settings")
-async def settings_menu(message: Message):
-    user_id = message.from_user.id
-
-    async with aiosqlite.connect(DB_NAME) as db:
-        cursor = await db.execute(
-            "SELECT username, email, ovo_id, ovo_amount FROM users WHERE telegram_id = ?", (user_id,)
-        )
-        row = await cursor.fetchone()
-
-    if row is None:
-        await message.answer("⚠️ User data not found.")
-        return
-
-    username, email, ovo_id, ovo_amount = row
-
-    profile_text = (
-        "🛠️ <b>My Profile</b>\n\n"
-        f"👤 Username: @{username if username else 'Not set'}\n"
-        f"📧 Email: {email if email else 'Not set'}\n"
-        f"🆔 OVO ID: {ovo_id if ovo_id else 'Not set'}\n"
-        f"💰 OVO Amount: {ovo_amount if ovo_amount is not None else '0'}\n"
-    )
-
-    await message.answer(profile_text, parse_mode="HTML")
+    
+@dp.callback_query(F.data == "settings")
+async def settings_menu(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Settings Menu:", reply_markup=settings_kb)
+    await state.clear()
+    
 # Settings handlers with FSM
 
 @dp.callback_query(F.data == "set_email")
@@ -269,6 +250,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
