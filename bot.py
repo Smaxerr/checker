@@ -4,7 +4,7 @@ import asyncio
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters.command import Command
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, DefaultBotProperties
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -190,4 +190,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
