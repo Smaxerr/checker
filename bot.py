@@ -43,6 +43,35 @@ class SettingsStates(StatesGroup):
     waiting_for_ovo_cards = State()
     waiting_for_royalmail_cards = State()
 
+HELP_TEXT = """
+🤖 *Bot Setup & Usage Guide*
+
+1️⃣ *Setup your settings first:*
+- Set your *email* in the Settings.
+- Set your *OVO ID*.
+- Set the *amount* you want per operation.
+
+2️⃣ *How to use the bot:*
+- Use the commands or menus.
+- Input format:
+  cardnumber|expirymonth|expiryyear|cvv
+If you use any other format, bot may fail.
+
+3️⃣ *Costs:*
+- Each operation costs 1 credit deducted from your balance.
+- Ensure you have enough balance before running scripts.
+
+4️⃣ *Commands:*
+- /start - View balance and menu.
+- /help - Show this message.
+- Settings - Update your details.
+
+Contact @smaxxxer for support.
+"""
+
+async def help_command(message: types.Message):
+    await message.answer(HELP_TEXT, parse_mode="Markdown")
+
 async def init_db():
     async with aiosqlite.connect(DB_NAME) as db:
         await db.execute("""
@@ -331,6 +360,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
