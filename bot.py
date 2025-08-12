@@ -139,7 +139,7 @@ async def admin_view_users(message: Message):
     await message.answer_document(document=content.encode("utf-8"), filename="users.csv")
 
 # Callback handler for Change Email button
-@dp.callback_query(F.data == "change_email")
+@dp.callback_query(F.data == "set_email")
 async def change_email_handler(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Please enter your new email address:")
     await state.set_state(SettingsStates.waiting_for_email)
@@ -170,6 +170,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
