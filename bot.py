@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import CommandObject
 from aiogram.types import FSInputFile
 import aiosqlite
@@ -15,6 +15,14 @@ API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
 ADMIN_ID = 8159560233
 
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
+
+commands = [
+    BotCommand(command="start", description="Start the bot"),
+    BotCommand(command="help", description="Show help info"),
+]
+
+await bot.set_my_commands(commands)
+
 dp = Dispatcher()
 
 DB_NAME = "users.db"
@@ -66,16 +74,9 @@ async def add_user_if_not_exists(user_id: int, username: str):
             )
             await db.commit()
 
-start_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="Start")]
-    ],
-    resize_keyboard=True)
-
 
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
-    await message.answer("Press Start to begin.", reply_markup=start_kb)
     user_id = message.from_user.id
 
     async with aiosqlite.connect(DB_NAME) as db:
@@ -328,6 +329,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
