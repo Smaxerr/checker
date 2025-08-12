@@ -9,6 +9,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import CommandObject
+from aiogram import types
 from aiogram.types import FSInputFile
 import aiosqlite
 
@@ -349,6 +350,9 @@ async def set_balance(message: Message, command: CommandObject):
 async def main():
     await init_db()
     
+    # Register handlers here
+    dp.register_message_handler(help_command, commands=["help"])
+    
     commands = [
         BotCommand(command="start", description="Start the bot"),
         BotCommand(command="help", description="Show help info"),
@@ -356,10 +360,9 @@ async def main():
     
     await bot.set_my_commands(commands)
     await dp.start_polling(bot)
-
-
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
