@@ -1,4 +1,5 @@
 from playwright.async_api import async_playwright
+import asyncio
 
 async def run_ovocharger(card_details: str):
     # card_details format: cardnumber|expirymonth|expiryyear|cvv
@@ -12,6 +13,8 @@ async def run_ovocharger(card_details: str):
 
             await page.wait_for_load_state('load')  # waits for full page load
 
+            await asyncio.sleep(2)  # wait 2 seconds to allow dynamic content to render
+
             screenshot_bytes = await page.screenshot()
 
             # For demo, pretend success if element found
@@ -23,5 +26,6 @@ async def run_ovocharger(card_details: str):
         except Exception as e:
             await browser.close()
             return f"Error: {e}", None
+
 
 
