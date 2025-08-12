@@ -252,7 +252,7 @@ async def process_ovo_cards(message: Message, state: FSMContext):
     results = []
     for card in cards:
         try:
-            result = await charge_card(card)  # call your async charging func
+            result = await run_ovocharger(card)  # call your async charging func
             results.append(result)
         except Exception as e:
             results.append(f"Error processing card {card}: {e}")
@@ -373,6 +373,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
