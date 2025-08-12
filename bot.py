@@ -14,7 +14,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import CommandObject
 from aiogram import types
-from aiogram.types import InputFile
+from aiogram.types import BufferedInputFile
 from aiogram.types import FSInputFile
 import aiosqlite
 
@@ -378,6 +378,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
