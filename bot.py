@@ -159,7 +159,37 @@ async def process_royalmail_cards(message: Message, state: FSMContext):
     # TODO: call your async charge functions here
     await state.clear()
 
-# Admin commands and DB init omitted for brevity (reuse your existing)
+@dp.message(Command("viewusers"))
+async def view_users(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("You are not authorized to use this command.")
+        return
+
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT telegram_id, username, email, ovo_id, ovo_amount, credits FROM users")
+        rows = await cursor.fetchall()
+
+    if not rows:
+        await message.answer("No users found in the database.")
+        return
+
+    lines = ["ID | Username | Email | Ovo ID | Ovo Amount | Credits"]
+    for row in rows:
+        lines.append(" | ".join(str(item) if item is not None else "-" for item in row))
+
+    text = "\n".join(lines)
+
+    # Send as a file because message can get long
+    filename = "users_list.txt"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(text)
+
+    with open(filename, "rb") as f:
+        await message.answer_document(f, caption=f"Users list ({len(rows)} users)")
+
+    os.remove(filename)
+
+
 
 async def main():
     await init_db()
@@ -167,3 +197,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
