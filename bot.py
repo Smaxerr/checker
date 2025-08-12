@@ -318,17 +318,19 @@ async def set_balance(message: Message, command: CommandObject):
 
 async def main():
     await init_db()
-    await dp.start_polling(bot)
     
     commands = [
-    BotCommand(command="start", description="Start the bot"),
-    BotCommand(command="help", description="Show help info"),
+        BotCommand(command="start", description="Start the bot"),
+        BotCommand(command="help", description="Show help info"),
     ]
     
     await bot.set_my_commands(commands)
+    await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
