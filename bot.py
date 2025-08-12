@@ -9,6 +9,7 @@ from aiogram.client.bot import DefaultBotProperties
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.filters import Command
 from aiogram.types import BotCommand
+import tempfile
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InputFile
 from aiogram.fsm.state import State, StatesGroup
@@ -381,6 +382,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
