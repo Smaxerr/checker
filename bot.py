@@ -214,12 +214,43 @@ async def add_balance(message: Message, command: CommandObject):
 
     await message.answer(f"✅ Added {amount} credits to user {user_id}. New balance: {new_credits}")
 
+
+@dp.message(Command("setbalance"))
+async def set_balance(message: Message, command: CommandObject):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("❌ You are not authorized to use this command.")
+        return
+
+    args = command.args.split()
+    if len(args) != 2:
+        await message.answer("Usage: ./setbalance <telegram_id> <amount>")
+        return
+
+    try:
+        user_id = int(args[0])
+        amount = int(args[1])
+    except ValueError:
+        await message.answer("Please provide valid integers for telegram_id and amount.")
+        return
+
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT 1 FROM users WHERE telegram_id = ?", (user_id,))
+        user_exists = await cursor.fetchone()
+        if not user_exists:
+            await message.answer(f"User with telegram_id {user_id} not found.")
+            return
+        await db.execute("UPDATE users SET credits = ? WHERE telegram_id = ?", (amount, user_id))
+        await db.commit()
+
+    await message.answer(f"✅ Set user {user_id} balance to {amount}.")
+
 async def main():
     await init_db()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
