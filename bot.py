@@ -66,6 +66,15 @@ async def add_user_if_not_exists(user_id: int, username: str):
             )
             await db.commit()
 
+start_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Start")]
+    ],
+    resize_keyboard=True)
+
+await message.answer("Press Start to begin.", reply_markup=start_kb)
+
+
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
     user_id = message.from_user.id
@@ -320,6 +329,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
