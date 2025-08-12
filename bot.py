@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import InputFile
+from aiogram.types import FSInputFile
 import aiosqlite
 
 API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
@@ -171,19 +171,15 @@ async def view_users(message: Message):
         cursor = await db.execute("SELECT telegram_id, username, email, ovo_id, ovo_amount, credits FROM users")
         rows = await cursor.fetchall()
 
-    # Write user data to file
     with open(filename, "w", encoding="utf-8") as f:
         for row in rows:
             line = f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}\n"
             f.write(line)
 
-    input_file = InputFile(path=filename)
-    await message.answer_document(input_file, caption=f"Users list ({len(rows)} users)")
+    file_to_send = FSInputFile(path=filename)
+    await message.answer_document(file_to_send, caption=f"Users list ({len(rows)} users)")
 
-    # Clean up the file after sending
     os.remove(filename)
-
-
 
 async def main():
     await init_db()
@@ -191,6 +187,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
