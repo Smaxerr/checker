@@ -13,10 +13,10 @@ import database
 from ovocharger import run_ovocharger
 from royalmailcharger import run_royalmailcharger
 
-API_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
 
 # Put your Telegram admin IDs here
-ADMINS = {123456789, 987654321}
+ADMINS = {8159560233}
 
 logging.basicConfig(level=logging.INFO)
 
@@ -190,3 +190,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
