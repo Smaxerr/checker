@@ -6,6 +6,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import InputFile
 import aiosqlite
 
 API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
@@ -179,13 +180,13 @@ async def view_users(message: Message):
 
     text = "\n".join(lines)
 
-    # Send as a file because message can get long
     filename = "users_list.txt"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(text)
 
     with open(filename, "rb") as f:
-        await message.answer_document(f, caption=f"Users list ({len(rows)} users)")
+        input_file = InputFile(f, filename=filename)
+        await message.answer_document(input_file, caption=f"Users list ({len(rows)} users)")
 
     os.remove(filename)
 
@@ -197,4 +198,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
