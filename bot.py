@@ -357,12 +357,12 @@ async def main():
     await bot.set_my_commands(commands)
 
     dp.message.register(help_command, Command(commands=["help"]))
-    dp.message.register(start_command, Command(commands=["start"]))
 
     await dp.start_polling(bot)
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
