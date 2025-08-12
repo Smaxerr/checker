@@ -10,7 +10,7 @@ async def run_ovocharger(card_details: str):
         try:
             await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment")
 
-        
+            await page.wait_for_load_state('load')  # waits for full page load
 
             screenshot_bytes = await page.screenshot()
 
@@ -23,4 +23,5 @@ async def run_ovocharger(card_details: str):
         except Exception as e:
             await browser.close()
             return f"Error: {e}", None
+
 
