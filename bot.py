@@ -259,9 +259,9 @@ async def process_ovo_cards(message: Message, state: FSMContext):
         if screenshot_bytes:
             bio = BytesIO(screenshot_bytes)
             bio.name = "screenshot.png"
-            bio.seek(0)  # rewind the BytesIO stream before reading
+            bio.seek(0)
             
-            photo = InputFile(bio, filename="screenshot.png")
+            photo = InputFile(io=bio, filename="screenshot.png")
             await message.answer_photo(photo=photo)
         results.append(result)
 
@@ -381,6 +381,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
