@@ -8,9 +8,13 @@ async def run_royalmailcharger(card_details: str):
         browser = await p.chromium.launch()
         page = await browser.new_page()
         try:
+            await page.set_viewport_size({"width": 1280, "height": 720})
+
             await page.goto("https://send.royalmail.com/send/youritem?country=GBR&format&weight=&weightUnit=G")
 
             await page.wait_for_load_state('load')  # waits for full page load
+
+            await asyncio.sleep(2)  # wait 2 seconds to allow dynamic content to render
 
             screenshot_bytes = await page.screenshot()
 
@@ -23,4 +27,5 @@ async def run_royalmailcharger(card_details: str):
         except Exception as e:
             await browser.close()
             return f"Error: {e}", None
+
 
