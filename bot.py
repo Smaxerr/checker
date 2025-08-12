@@ -80,7 +80,29 @@ async def back_main_menu(callback: CallbackQuery, state: FSMContext):
     
 @dp.callback_query(F.data == "settings")
 async def settings_menu(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Settings Menu:", reply_markup=settings_kb)
+    user_id = callback.from_user.id
+
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute(
+            "SELECT username, email, ovo_id, ovo_amount FROM users WHERE telegram_id = ?", (user_id,)
+        )
+        row = await cursor.fetchone()
+
+    if row is None:
+        await callback.message.edit_text("⚠️ User data not found.")
+        return
+
+    username, email, ovo_id, ovo_amount = row
+
+    profile_text = (
+        "🛠️ <b>My Profile</b>\n\n"
+        f"👤 Username: @{username if username else 'Not set'}\n"
+        f"📧 Email: {email if email else 'Not set'}\n"
+        f"🆔 OVO ID: {ovo_id if ovo_id else 'Not set'}\n"
+        f"💰 OVO Amount: {ovo_amount if ovo_amount is not None else '0'}\n"
+    )
+
+    await callback.message.edit_text(profile_text, parse_mode="HTML", reply_markup=settings_kb)
     await state.clear()
     
 # Settings handlers with FSM
@@ -250,6 +272,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
