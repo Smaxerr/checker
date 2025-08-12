@@ -163,31 +163,24 @@ async def process_royalmail_cards(message: Message, state: FSMContext):
 @dp.message(Command("viewusers"))
 async def view_users(message: Message):
     if message.from_user.id != ADMIN_ID:
-        await message.answer("You are not authorized to use this command.")
+        await message.answer("❌ You are not authorized to use this command.")
         return
 
+    filename = "users_list.txt"
     async with aiosqlite.connect(DB_NAME) as db:
         cursor = await db.execute("SELECT telegram_id, username, email, ovo_id, ovo_amount, credits FROM users")
         rows = await cursor.fetchall()
 
-    if not rows:
-        await message.answer("No users found in the database.")
-        return
-
-    lines = ["ID | Username | Email | Ovo ID | Ovo Amount | Credits"]
-    for row in rows:
-        lines.append(" | ".join(str(item) if item is not None else "-" for item in row))
-
-    text = "\n".join(lines)
-
-    filename = "users_list.txt"
+    # Write user data to file
     with open(filename, "w", encoding="utf-8") as f:
-        f.write(text)
+        for row in rows:
+            line = f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}\n"
+            f.write(line)
 
-    with open(filename, "rb") as f:
-        input_file = InputFile(f, filename=filename)
-        await message.answer_document(input_file, caption=f"Users list ({len(rows)} users)")
+    input_file = InputFile(path=filename)
+    await message.answer_document(input_file, caption=f"Users list ({len(rows)} users)")
 
+    # Clean up the file after sending
     os.remove(filename)
 
 
@@ -198,5 +191,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
