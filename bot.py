@@ -279,6 +279,7 @@ async def royalmail_charger_start(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
     await state.set_state(SettingsStates.waiting_for_royalmail_cards)
     await callback.answer()
+    
 @dp.message(SettingsStates.waiting_for_royalmail_cards)
 async def process_royalmail_cards(message: Message, state: FSMContext):
     cards = message.text.strip().split("\n")
@@ -400,6 +401,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
