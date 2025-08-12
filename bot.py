@@ -93,7 +93,7 @@ async def cmd_start(message: Message):
     )
 
     # Assuming you have a main_menu_kb defined somewhere
-    await message.answer(text, reply_markup=main_menu_kb)
+    await message.answer(text, reply_markup=main_kb)
     
 @dp.callback_query(F.data == "back_main")
 async def back_main_menu(callback: CallbackQuery, state: FSMContext):
@@ -294,6 +294,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
