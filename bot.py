@@ -20,11 +20,6 @@ from aiogram.types import BufferedInputFile
 from aiogram.types import FSInputFile
 import aiosqlite
 
-with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
-    tmp.write(screenshot_bytes)
-    tmp.flush()
-    photo = FSInputFile(tmp.name)
-    await message.answer_photo(photo=photo)
 
 API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
 ADMIN_ID = 8159560233
@@ -254,7 +249,6 @@ async def ovo_charger_start(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
     await state.set_state(SettingsStates.waiting_for_ovo_cards)
     await callback.answer()
-
 @dp.message(SettingsStates.waiting_for_ovo_cards)
 async def process_ovo_cards(message: Message, state: FSMContext):
     cards = message.text.strip().split("\n")
@@ -262,19 +256,21 @@ async def process_ovo_cards(message: Message, state: FSMContext):
 
     results = []
     for card in cards:
+        # Run the ovocharger for each card and get result + screenshot
         result, screenshot_bytes = await run_ovocharger(card)
+
         if screenshot_bytes:
-            bio = BytesIO(screenshot_bytes)
-            bio.name = "screenshot.png"
-            bio.seek(0)
-            
-            photo = InputFile(io=bio, filename="screenshot.png")
-            await message.answer_photo(photo=photo)
-        results.append(result)
+            # Write bytes to temp file and send photo
+            with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+                tmp.write(screenshot_bytes)
+                tmp.flush()
+                photo = FSInputFile(tmp.name)
+                await message.answer_photo(photo=photo)
+
+        results.append(f"{card}: {result}")
 
     await message.answer("\n".join(results))
     await state.clear()
-
 # Royalmail Charger flow FSM
 
 @dp.callback_query(F.data == "royalmail")
@@ -388,6 +384,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
