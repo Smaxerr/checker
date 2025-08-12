@@ -6,6 +6,10 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.filters import Command
 import aiosqlite
 
+# State for email input
+class SettingsStates(StatesGroup):
+    waiting_for_email = State()
+
 API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
 ADMIN_ID = 8159560233
 
@@ -132,12 +136,39 @@ async def admin_view_users(message: Message):
         content += ",".join(str(x) if x is not None else "" for x in row) + "\n"
     await message.answer_document(document=content.encode("utf-8"), filename="users.csv")
 
+# Callback handler for Change Email button
+@dp.callback_query(F.data == "change_email")
+async def change_email_handler(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer("Please enter your new email address:")
+    await state.set_state(SettingsStates.waiting_for_email)
+    await callback.answer()
+
+# Message handler to save new email
+@dp.message(SettingsStates.waiting_for_email)
+async def save_new_email(message: Message, state: FSMContext):
+    new_email = message.text.strip()
+
+    # You might want to add some basic email validation here
+    # Example: check if '@' in new_email
+    if "@" not in new_email:
+        await message.answer("❌ That doesn't look like a valid email. Try again:")
+        return
+
+    # Save email to database
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("UPDATE users SET email = ? WHERE user_id = ?", (new_email, message.from_user.id))
+        await db.commit()
+
+    await message.answer(f"✅ Your email has been updated to: {new_email}")
+    await state.clear()
+
 async def main():
     await init_db()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
