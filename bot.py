@@ -1,6 +1,7 @@
 import os
 import asyncio
 from aiogram import Bot, Dispatcher, F
+from aiogram.client.bot import DefaultBotProperties
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.filters import Command
 import aiosqlite
@@ -8,7 +9,7 @@ import aiosqlite
 API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
 ADMIN_ID = 8159560233
 
-bot = Bot(token=API_TOKEN, parse_mode="HTML")
+bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
 
 # Database filename
@@ -137,5 +138,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
