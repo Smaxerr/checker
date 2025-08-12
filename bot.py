@@ -6,6 +6,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKe
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters import CommandObject
 from aiogram.types import FSInputFile
 import aiosqlite
 
@@ -181,12 +182,45 @@ async def view_users(message: Message):
 
     os.remove(filename)
 
+@dp.message(Command("addbalance"))
+async def add_balance(message: Message, command: CommandObject):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("❌ You are not authorized to use this command.")
+        return
+
+    # command.args contains the full string after the command, e.g. "123456789 10"
+    args = command.args.split()
+    if len(args) != 2:
+        await message.answer("Usage: ./addbalance <telegram_id> <amount>")
+        return
+
+    try:
+        user_id = int(args[0])
+        amount = int(args[1])
+    except ValueError:
+        await message.answer("Please provide valid integers for telegram_id and amount.")
+        return
+
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute("SELECT credits FROM users WHERE telegram_id = ?", (user_id,))
+        row = await cursor.fetchone()
+        if not row:
+            await message.answer(f"User with telegram_id {user_id} not found.")
+            return
+        current_credits = row[0] or 0
+        new_credits = current_credits + amount
+        await db.execute("UPDATE users SET credits = ? WHERE telegram_id = ?", (new_credits, user_id))
+        await db.commit()
+
+    await message.answer(f"✅ Added {amount} credits to user {user_id}. New balance: {new_credits}")
+
 async def main():
     await init_db()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
