@@ -2,6 +2,7 @@ import os
 import asyncio
 
 from ovocharger import run_ovocharger
+from royalmailcharger import run_royalmailcharger
 
 from aiogram import Bot, Dispatcher, F
 from io import BytesIO
@@ -278,12 +279,27 @@ async def royalmail_charger_start(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
     await state.set_state(SettingsStates.waiting_for_royalmail_cards)
     await callback.answer()
-
 @dp.message(SettingsStates.waiting_for_royalmail_cards)
 async def process_royalmail_cards(message: Message, state: FSMContext):
     cards = message.text.strip().split("\n")
-    await message.answer(f"Received {len(cards)} Royalmail card(s). Processing now...")
-    # TODO: call your async charge functions here
+    await message.answer(f"Received {len(cards)} card(s). Processing now...")
+
+    results = []
+    for card in cards:
+        # Run the ovocharger for each card and get result + screenshot
+        result, screenshot_bytes = await run_royalmailcharger(card)
+
+        if screenshot_bytes:
+            # Write bytes to temp file and send photo
+            with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
+                tmp.write(screenshot_bytes)
+                tmp.flush()
+                photo = FSInputFile(tmp.name)
+                await message.answer_photo(photo=photo)
+
+        results.append(f"{card}: {result}")
+
+    await message.answer("\n".join(results))
     await state.clear()
 
 @dp.message(Command("viewusers"))
@@ -384,6 +400,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
