@@ -63,18 +63,18 @@ async def cmd_start(message: Message):
         reply_markup=main_kb,
     )
 
-@dp.callback_query(@dp.callback_query(lambda c: c.data == "back_main")
+@dp.callback_query(lambda c: c.data == "back_main")
 async def back_main_menu(callback: CallbackQuery):
     await callback.message.edit_text("Main Menu:", reply_markup=main_kb)
 
-@dp.callback_query(@dp.callback_query(lambda c: c.data == "settings")
+@dp.callback_query(lambda c: c.data == "settings")
 async def settings_menu(callback: CallbackQuery):
     await callback.message.edit_text("Settings Menu:", reply_markup=settings_kb)
 
 # Handlers for settings changes - simplified example with FSM or state management recommended
 # For brevity, not fully implemented here
 
-@dp.callback_query(@dp.callback_query(lambda c: c.data == "ovo")
+@dp.callback_query(lambda c: c.data == "ovo")
 async def ovo_charger_start(callback: CallbackQuery):
     await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
 
@@ -88,7 +88,7 @@ async def process_ovo_cards(message: Message):
     # TODO: Call your ovocharger.py async functions here with asyncio.gather()
     # Charge credits if success, refund if fail
 
-@dp.callback_query(@dp.callback_query(lambda c: c.data == "royalmail")
+@dp.callback_query(lambda c: c.data == "royalmail")
 async def royalmail_charger_start(callback: CallbackQuery):
     await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
 
@@ -138,6 +138,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
