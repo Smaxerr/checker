@@ -16,13 +16,6 @@ ADMIN_ID = 8159560233
 
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 
-commands = [
-    BotCommand(command="start", description="Start the bot"),
-    BotCommand(command="help", description="Show help info"),
-]
-
-await bot.set_my_commands(commands)
-
 dp = Dispatcher()
 
 DB_NAME = "users.db"
@@ -326,9 +319,17 @@ async def set_balance(message: Message, command: CommandObject):
 async def main():
     await init_db()
     await dp.start_polling(bot)
+    
+    commands = [
+    BotCommand(command="start", description="Start the bot"),
+    BotCommand(command="help", description="Show help info"),
+    ]
+    
+    await bot.set_my_commands(commands)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
