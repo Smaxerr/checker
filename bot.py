@@ -14,6 +14,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import CommandObject
 from aiogram import types
+from aiogram.types import InputFile
 from aiogram.types import FSInputFile
 import aiosqlite
 
@@ -254,12 +255,13 @@ async def process_ovo_cards(message: Message, state: FSMContext):
     for card in cards:
         result, screenshot = await run_ovocharger(card)
         await message.answer(result)
-        
+
         if screenshot:
             bio = BytesIO(screenshot)
             bio.name = "screenshot.png"
             bio.seek(0)
-            await message.answer_photo(photo=bio)
+            photo = InputFile(bio, filename="screenshot.png")
+            await message.answer_photo(photo=photo)
 
     await state.clear()
 
@@ -376,6 +378,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
