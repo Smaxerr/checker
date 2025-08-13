@@ -45,7 +45,12 @@ async def run_royalmailcharger(user_id: int, card_details: str):
                 await change_credits(user_id, +1)
                 return None, "NO_EMAIL"
 
-            
+            # Attempt to Accept Cookies
+            try:
+                await page.locator("button:has-text('Accept')").click(timeout=1000)
+            except:
+                pass  # button not found, continue
+
             
             
             status = "Check Failed"
@@ -102,6 +107,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
