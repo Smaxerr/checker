@@ -52,3 +52,14 @@ async def get_all_users():
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT * FROM users") as cursor:
             return await cursor.fetchall()
+
+async def get_ovo_id(user_id: int) -> str | None:
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT ovo_id FROM users WHERE id = $1",
+            user_id,
+        )
+        if row and row['ovo_id']:
+            return row['ovo_id']
+        return None
+
