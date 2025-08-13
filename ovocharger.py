@@ -20,7 +20,15 @@ async def run_ovocharger(user_id: int, card_details: str):
 
         
         try:
-
+            card_parts = card.strip().split("|")
+            if len(card_parts) != 4:
+                print(f"[Invalid card format]: {card}")
+                return None, "INVALID"
+    
+            card_number, exp_month, exp_year, cvv = card_parts
+            if len(exp_year) == 2:
+                exp_year = "20" + exp_year
+    
 
 
             # Fake details
@@ -38,7 +46,12 @@ async def run_ovocharger(user_id: int, card_details: str):
                 return None, "NO_OVO_ID"
 
             await page.fill('#customerid', ovo_id)
+            await page.fill('#amount', '1')
             await page.fill('#cardholdername', name)
+
+
+
+            
             await page.fill('#postcode', postcode)
             await page.fill('#address1', address1)
             await page.fill('#city', city)
@@ -75,6 +88,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
