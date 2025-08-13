@@ -48,7 +48,7 @@ async def run_ovocharger(user_id: int, card_details: str):
                 return None, "NO_OVO_AMOUNT"
 
             await page.fill('#customerid', ovo_id)
-            await page.fill('#amount', 'ovo_amount')
+            await page.fill('#amount', ovo_amount)
             await page.fill('#cardholdername', name)
 
 
@@ -90,6 +90,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
