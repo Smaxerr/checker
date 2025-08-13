@@ -183,17 +183,9 @@ async def get_settings_kb(user_id):
     screenshots_on = await get_screenshots_setting(user_id)
 
     if screenshots_on:
-        # Pass new target value (0) in callback
-        screenshots_btn = InlineKeyboardButton(
-            text="📸 Screenshots: ON (Click to turn OFF)",
-            callback_data="toggle_screenshots:0"
-        )
+        screenshots_btn = InlineKeyboardButton(text="📸 Screenshots: ON (Click to turn OFF)", callback_data="screenshots_off")
     else:
-        # Pass new target value (1) in callback
-        screenshots_btn = InlineKeyboardButton(
-            text="📷 Screenshots: OFF (Click to turn ON)",
-            callback_data="toggle_screenshots:1"
-        )
+        screenshots_btn = InlineKeyboardButton(text="📷 Screenshots: OFF (Click to turn ON)", callback_data="screenshots_on")
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Change Email", callback_data="set_email")],
@@ -204,21 +196,37 @@ async def get_settings_kb(user_id):
     ])
     return keyboard
 
-async def init_db():
-    global db
-    db = await aiosqlite.connect(DB_PATH)
-    await db.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        telegram_id INTEGER PRIMARY KEY,
-        telegram_name TEXT,
-        email TEXT DEFAULT '',
-        ovo_id TEXT DEFAULT '',
-        ovo_amount TEXT DEFAULT '',
-        credits INTEGER DEFAULT 10,
-        screenshots_enabled INTEGER DEFAULT 1  -- 1 = True, 0 = False
+@dp.callback_query(F.data == "settings")
+async def settings_menu(callback: CallbackQuery, state: FSMContext):
+    user_id = callback.from_user.id
+
+    async with aiosqlite.connect(DB_NAME) as db:
+        cursor = await db.execute(
+            "SELECT username, email, ovo_id, ovo_amount, screenshots_enabled FROM users WHERE telegram_id = ?", 
+            (user_id,)
+        )
+        row = await cursor.fetchone()
+
+    if row is None:
+        await callback.message.edit_text("⚠️ User data not found.")
+        return
+
+    username, email, ovo_id, ovo_amount, screenshots_enabled = row
+
+    profile_text = (
+        "🛠️ <b>My Profile</b>\n\n"
+        f"👤 Username: @{username if username else 'Not set'}\n"
+        f"📧 Email: {email if email else 'Not set'}\n"
+        f"🆔 OVO ID: {ovo_id if ovo_id else 'Not set'}\n"
+        f"💰 OVO Amount: {ovo_amount if ovo_amount is not None else '0'}\n"
+        f"📸 Screenshots Enabled: {'Yes' if screenshots_enabled else 'No'}\n"
     )
-    """)
-    await db.commit()
+
+    # Use your dynamic keyboard function here
+    kb = await get_settings_kb(user_id)
+
+    await callback.message.edit_text(profile_text, parse_mode="HTML", reply_markup=kb)
+    await state.clear()
 
 
 @dp.callback_query(F.data == "set_email")
