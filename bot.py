@@ -124,7 +124,7 @@ async def cmd_start(message: Message):
 
     async with aiosqlite.connect(DB_NAME) as db:
         cursor = await db.execute(
-            "SELECT username, ovo_amount FROM users WHERE telegram_id = ?", (user_id,)
+            "SELECT username, credits FROM users WHERE telegram_id = ?", (user_id,)
         )
         row = await cursor.fetchone()
 
@@ -154,7 +154,7 @@ async def back_main_menu(callback: CallbackQuery, state: FSMContext):
 
     async with aiosqlite.connect(DB_NAME) as db:
         cursor = await db.execute(
-            "SELECT username, ovo_amount FROM users WHERE telegram_id = ?", (user_id,)
+            "SELECT username, credits FROM users WHERE telegram_id = ?", (user_id,)
         )
         row = await cursor.fetchone()
 
@@ -446,6 +446,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
