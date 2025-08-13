@@ -3,7 +3,6 @@ import asyncio
 import faker as faker_module
 import uuid
 import os
-from aiogram.types import FSInputFile
 
 
 faker = faker_module.Faker("en_GB")
@@ -26,64 +25,6 @@ async def run_ovocharger(card_details: str, user_id: str):
         try:
             await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment", timeout=60000)
 
-            # Fake details
-            name = faker.name()
-            address1 = faker.street_address()
-            city = faker.city()
-            postcode = faker.postcode()
-
-            ovo_id = await get_ovo_id(user_id)
-            if not ovo_id:
-                await browser.close()
-                return None, "NO_OVO_ID"
-
-            await page.fill('#customerid', ovo_id)
-            await page.fill('#amount', '1')
-            await page.fill('#cardholdername', name)
-
-            frame_element = await page.wait_for_selector('iframe[src*="hostedfields.paypoint.services"]', timeout=10000)
-            frame = await frame_element.content_frame()
-            await frame.fill('input[name="card_number"]', cardnumber)
-
-            await page.select_option('select[name="PaymentCard.ExpiryMonth"]', expirymonth)
-            await page.select_option('select[name="PaymentCard.ExpiryYear"]', expiryyear)
-            await page.fill('input[name="PaymentCard.CVV"]', cvv)
-
-            await page.fill('#postcode', postcode)
-            await page.fill('#address1', address1)
-            await page.fill('#city', city)
-            await page.fill('#emailForConfirmation', 'maxxxier@yahoo.com')
-            await page.fill('#mobileNumberForSmsConfirmation', '07454805800')
-            await page.check('input[name="AcceptedTermsAndConditions"]')
-
-            # Click Make Payment button with retries
-            button_locator = page.locator('input#makePayment')
-            for attempt in range(3):
-                if await button_locator.is_visible():
-                    await button_locator.click(force=True)
-                    await page.wait_for_timeout(2000)
-                else:
-                    break
-
-            await page.wait_for_timeout(15000)
-
-            # Detect payment status
-            status = "UNKNOWN"
-            for frm in page.frames:
-                try:
-                    content = await frm.content()
-                    text = content.lower()
-                    if "payment authorised" in text:
-                        status = "LIVE"
-                        break
-                    elif any(w in text for w in ["verify", "otp", "authorise", "mobile app"]):
-                        status = "OTP"
-                        break
-                    elif "declined" in text:
-                        status = "DEAD"
-                        break
-                except:
-                    continue
 
             if screenshot_path and os.path.exists(screenshot_path):
                 screenshot_file = FSInputFile(screenshot_path)
@@ -114,6 +55,7 @@ if __name__ == "__main__":
     results = asyncio.run(process_multiple_cards(test_cards, user_id))
     for idx, (screenshot, status) in enumerate(results):
         print(f"Card {idx+1}: {status}, Screenshot: {screenshot}")
+
 
 
 
