@@ -22,6 +22,10 @@ from aiogram.types import BufferedInputFile
 from aiogram.types import FSInputFile
 import aiosqlite
 
+from faker import Faker
+
+faker = Faker("en_GB")  # optional locale for UK-style addresses
+
 
 API_TOKEN = "7580204485:AAE1f-PP9Fx4S2eEWxSLjd0C_-bgzFcWXBo"
 ADMIN_ID = 8159560233
@@ -438,6 +442,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
