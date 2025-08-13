@@ -19,6 +19,10 @@ async def run_ovocharger(user_id: int, card_details: str):
         
         try:
 
+            ovo_id = await get_ovo_id(user_id)
+            if not ovo_id:
+                return None, "NO_OVO_ID"
+
             # Fake details
             name = faker.name()
             address1 = faker.street_address()
@@ -66,6 +70,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
