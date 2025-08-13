@@ -1,5 +1,4 @@
 from playwright.async_api import async_playwright
-from database import get_ovo_id
 import asyncio
 
 
@@ -70,6 +69,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
