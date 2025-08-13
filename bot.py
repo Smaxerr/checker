@@ -183,9 +183,17 @@ async def get_settings_kb(user_id):
     screenshots_on = await get_screenshots_setting(user_id)
 
     if screenshots_on:
-        screenshots_btn = InlineKeyboardButton(text="📸 Screenshots: ON (Click to turn OFF)", callback_data="screenshots_off")
+        # Pass new target value (0) in callback
+        screenshots_btn = InlineKeyboardButton(
+            text="📸 Screenshots: ON (Click to turn OFF)",
+            callback_data="toggle_screenshots:0"
+        )
     else:
-        screenshots_btn = InlineKeyboardButton(text="📷 Screenshots: OFF (Click to turn ON)", callback_data="screenshots_on")
+        # Pass new target value (1) in callback
+        screenshots_btn = InlineKeyboardButton(
+            text="📷 Screenshots: OFF (Click to turn ON)",
+            callback_data="toggle_screenshots:1"
+        )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Change Email", callback_data="set_email")],
@@ -195,6 +203,31 @@ async def get_settings_kb(user_id):
         [InlineKeyboardButton(text="Back to Main Menu", callback_data="back_main")],
     ])
     return keyboard
+
+@dp.callback_query(lambda c: c.data.startswith("toggle_screenshots:"))
+async def toggle_screenshots_handler(callback_query: CallbackQuery):
+    user_id = callback_query.from_user.id
+
+    # Get target value from callback_data
+    target_value = int(callback_query.data.split(":")[1])
+
+    # Update DB
+    async with aiosqlite.connect("users.db") as db:
+        await db.execute(
+            "UPDATE users SET screenshots_enabled = ? WHERE user_id = ?",
+            (target_value, user_id)
+        )
+        await db.commit()
+
+    # Send updated settings menu
+    kb = await get_settings_kb(user_id)
+    await callback_query.message.edit_text(
+        "⚙️ Settings Menu:",
+        reply_markup=kb
+    )
+
+    # Acknowledge the button press
+    await callback_query.answer("✅ Screenshots setting updated")
     
 @dp.callback_query(F.data == "settings")
 async def settings_menu(callback: CallbackQuery, state: FSMContext):
@@ -478,6 +511,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
