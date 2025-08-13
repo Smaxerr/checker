@@ -1,5 +1,7 @@
 import aiosqlite
 
+DB_PATH = os.path.join(os.path.dirname(__file__), "users.db")
+
 
 async def init_db():
     global db
@@ -61,6 +63,7 @@ async def get_ovo_id(telegram_id: int) -> str | None:
             if row and row[0]:
                 return row[0]  # ovo_id value
             return None
+
 
 
 
