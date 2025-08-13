@@ -45,7 +45,10 @@ async def run_royalmailcharger(user_id: int, card_details: str):
                 await change_credits(user_id, +1)
                 return None, "NO_EMAIL"
 
-            await page.click("#consent_prompt_decline", timeout=1000)  # waits max 1s
+            consent_button = await page.query_selector("#consent_prompt_decline")
+            if consent_button:
+                await consent_button.click()
+
 
             
             
@@ -103,6 +106,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
