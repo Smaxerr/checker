@@ -12,15 +12,18 @@ async def run_ovocharger(card_details: str):
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
         await page.set_viewport_size({"width": 1280, "height": 720})
+        
+        # Fake details
+        name = faker.name()
+        address1 = faker.street_address()
+        city = faker.city()
+        postcode = faker.postcode()
+        
+        user_id = message.from_user.id
 
         try:
             await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment")
 
-            # Fake details
-            name = faker.name()
-            address1 = faker.street_address()
-            city = faker.city()
-            postcode = faker.postcode()
 
             ovo_id = await get_ovo_id(user_id)
             if not ovo_id:
@@ -60,5 +63,6 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
