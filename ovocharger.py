@@ -91,6 +91,11 @@ async def run_ovocharger(card_details: str, user_id: str):
             else:
                 await message.answer(f"Status: {status}")
 
+        except Exception as e:
+            print(f"Error in run_ovocharger: {e}")
+            status = "ERROR"
+        finally:
+            await browser.close()
 
 async def process_multiple_cards(cards: list[str], user_id: str):
     tasks = [run_ovocharger(card, user_id) for card in cards]
@@ -109,5 +114,6 @@ if __name__ == "__main__":
     results = asyncio.run(process_multiple_cards(test_cards, user_id))
     for idx, (screenshot, status) in enumerate(results):
         print(f"Card {idx+1}: {status}, Screenshot: {screenshot}")
+
 
 
