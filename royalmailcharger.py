@@ -73,12 +73,12 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             await page.locator("button[type='submit']").click()
 
 
-            await page.fill("#input-129fe25b-f44a-41a2-8c97-30d2d6e231ef", postcode)
+            #await page.fill("#input-129fe25b-f44a-41a2-8c97-30d2d6e231ef", postcode)
 
             
             #await page.click("text='Enter address manually'", timeout=1000)  # 1s timeout
             #await page.click("button[data-testid='manual-entry']", timeout=1000)  # 1s max wait
-            #await page.locator("button[data-testid='manual-entry']").click()
+            await page.locator("button[data-testid='manual-entry']").click()
 
             #await page.fill ("#name-field", name)
             
@@ -138,6 +138,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
