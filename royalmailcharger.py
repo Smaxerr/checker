@@ -30,6 +30,9 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             if len(exp_year) == 2:
                 exp_year = "20" + exp_year
 
+            exp_year_short = exp_year[-2:]
+            
+
             # Fake details
             name = faker.name()
             address1 = faker.street_address()
@@ -128,7 +131,7 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             await frame.locator("#cardNumber").fill(cardnumber)
             await frame.locator("input[name='cardholderName']").fill(name)
             await frame.locator("input[name='expiryDate.expiryMonth']").fill(exp_month)
-            await frame.locator("input[name='expiryDate.expiryYear']").fill(exp_year)
+            await frame.locator("input[name='expiryDate.expiryYear']").fill(exp_year_short)
             await frame.locator("input[name='securityCode']").fill(cvv)
 
             
@@ -187,6 +190,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
