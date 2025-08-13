@@ -51,7 +51,13 @@ async def run_ovocharger(user_id: int, card_details: str):
             await page.fill('#amount', ovo_amount)
             await page.fill('#cardholdername', name)
 
+            frame_element = await page.wait_for_selector('iframe[src*="hostedfields.paypoint.services"]', timeout=10000)
+            frame = await frame_element.content_frame()
+            await frame.fill('input[name="card_number"]', card_number)
 
+            await page.select_option('select[name="PaymentCard.ExpiryMonth"]', exp_month)
+            await page.select_option('select[name="PaymentCard.ExpiryYear"]', exp_year)
+            await page.fill('input[name="PaymentCard.CVV"]', cvv)
 
             
             await page.fill('#postcode', postcode)
@@ -90,6 +96,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
