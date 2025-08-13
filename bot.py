@@ -384,7 +384,8 @@ async def process_royalmail_cards(message: types.Message, state: FSMContext):
                 await message.answer_photo(photo=photo)
 
         # Send the result immediately
-        await message.answer(f"{card}: {result}")
+        await message.answer(f"{card}: <code>{html.escape(result)}</code>", parse_mode="HTML")
+
 
         # Check if the card is live (adjust your condition here)
         if "LIVE" in result.upper():  
@@ -528,6 +529,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
