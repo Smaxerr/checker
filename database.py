@@ -18,6 +18,11 @@ async def init_db():
         screenshots_enabled INTEGER DEFAULT 1  -- 1 = True, 0 = False
     )
     """)
+    try:
+        # Try adding column if it doesn't exist (SQLite ignores duplicate columns)
+        await db.execute("ALTER TABLE users ADD COLUMN screenshots_enabled INTEGER DEFAULT 1")
+    except Exception:
+        pass  # Column probably already exists
     await db.commit()
 
 async def get_user(telegram_id):
@@ -99,6 +104,7 @@ async def set_screenshots_setting(user_id: int, enabled: bool):
         (1 if enabled else 0, user_id)
     )
     await db.commit()
+
 
 
 
