@@ -1,7 +1,7 @@
 import os
 import asyncio
 
-from database import get_credits, change_credits
+from database import get_credits, change_credits, get_screenshot_settings, set_screenshot_settings
 
 from ovocharger import run_ovocharger
 from royalmailcharger import run_royalmailcharger
@@ -177,6 +177,24 @@ async def back_main_menu(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text, reply_markup=main_kb)
     await state.clear()
     await callback.answer()
+
+
+async def get_settings_kb(user_id):
+    screenshots_on = await get_screenshots_setting(user_id)
+
+    if screenshots_on:
+        screenshots_btn = InlineKeyboardButton(text="📸 Screenshots: ON (Click to turn OFF)", callback_data="screenshots_off")
+    else:
+        screenshots_btn = InlineKeyboardButton(text="📷 Screenshots: OFF (Click to turn ON)", callback_data="screenshots_on")
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Change Email", callback_data="set_email")],
+        [InlineKeyboardButton(text="Change Ovo ID", callback_data="set_ovo_id")],
+        [InlineKeyboardButton(text="Change Ovo Amount", callback_data="set_ovo_amount")],
+        [screenshots_btn],
+        [InlineKeyboardButton(text="Back to Main Menu", callback_data="back_main")],
+    ])
+    return keyboard
     
 @dp.callback_query(F.data == "settings")
 async def settings_menu(callback: CallbackQuery, state: FSMContext):
@@ -184,7 +202,8 @@ async def settings_menu(callback: CallbackQuery, state: FSMContext):
 
     async with aiosqlite.connect(DB_NAME) as db:
         cursor = await db.execute(
-            "SELECT username, email, ovo_id, ovo_amount FROM users WHERE telegram_id = ?", (user_id,)
+            "SELECT username, email, ovo_id, ovo_amount, screenshots_enabled FROM users WHERE telegram_id = ?", 
+            (user_id,)
         )
         row = await cursor.fetchone()
 
@@ -192,7 +211,7 @@ async def settings_menu(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_text("⚠️ User data not found.")
         return
 
-    username, email, ovo_id, ovo_amount = row
+    username, email, ovo_id, ovo_amount, screenshots_enabled = row
 
     profile_text = (
         "🛠️ <b>My Profile</b>\n\n"
@@ -200,9 +219,13 @@ async def settings_menu(callback: CallbackQuery, state: FSMContext):
         f"📧 Email: {email if email else 'Not set'}\n"
         f"🆔 OVO ID: {ovo_id if ovo_id else 'Not set'}\n"
         f"💰 OVO Amount: {ovo_amount if ovo_amount is not None else '0'}\n"
+        f"📸 Screenshots Enabled: {'Yes' if screenshots_enabled else 'No'}\n"
     )
 
-    await callback.message.edit_text(profile_text, parse_mode="HTML", reply_markup=settings_kb)
+    # Use your dynamic keyboard function here
+    kb = await get_settings_kb(user_id)
+
+    await callback.message.edit_text(profile_text, parse_mode="HTML", reply_markup=kb)
     await state.clear()
     
 # Settings handlers with FSM
@@ -271,6 +294,7 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
 
     results = []
     for card in cards:
+        
 
         credits = await get_credits(user_id)
         if credits < 1:
@@ -279,6 +303,7 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
 
         # Deduct 1 credit
         await change_credits(user_id, -1)
+        
         
         result, screenshot_bytes = await run_ovocharger(user_id, card)
         if screenshot_bytes:
@@ -453,6 +478,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
