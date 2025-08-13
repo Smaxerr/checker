@@ -2,6 +2,11 @@ from playwright.async_api import async_playwright
 from database import get_ovo_id
 import asyncio
 
+import aiosqlite
+db: aiosqlite.Connection | None = None
+DB_PATH = "botdata.db"
+
+
 from faker import Faker
 faker = Faker("en_GB")
 
@@ -71,6 +76,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
