@@ -3,6 +3,8 @@ import asyncio
 import faker as faker_module
 import uuid
 import os
+from aiogram.types import FSInputFile
+
 
 faker = faker_module.Faker("en_GB")
 
@@ -83,15 +85,11 @@ async def run_ovocharger(card_details: str, user_id: str):
                 except:
                     continue
 
-            filename = f"screenshot_{uuid.uuid4().hex}.png"
-            await page.screenshot(path=filename, full_page=True)
-
-            await browser.close()
-            return filename, status
-
-        except Exception as e:
-            await browser.close()
-            return None, f"ERROR: {e}"
+           if screenshot_path and os.path.exists(screenshot_path):
+                screenshot_file = FSInputFile(screenshot_path)
+                await message.answer_photo(screenshot_file, caption=f"Status: {status}")
+            else:
+                await message.answer(f"Status: {status}")
 
 
 async def process_multiple_cards(cards: list[str], user_id: str):
@@ -111,3 +109,4 @@ if __name__ == "__main__":
     results = asyncio.run(process_multiple_cards(test_cards, user_id))
     for idx, (screenshot, status) in enumerate(results):
         print(f"Card {idx+1}: {status}, Screenshot: {screenshot}")
+
