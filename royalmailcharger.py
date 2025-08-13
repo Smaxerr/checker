@@ -134,6 +134,11 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             await frame.locator("input[name='expiryDate.expiryYear']").fill(exp_year_short)
             await frame.locator("input[name='securityCode']").fill(cvv)
 
+            # Click Continue
+            await page.locator("button[type='submit']").click()
+
+            await asyncio.sleep(5)  # small wait to ensure dynamic content loads fully
+
             
             
             status = "Check Failed"
@@ -190,6 +195,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
