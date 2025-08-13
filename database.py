@@ -75,5 +75,13 @@ async def get_ovo_amount(telegram_id: int) -> str | None:
             return None
 
 
+async def get_email(telegram_id: int) -> str | None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT email FROM users WHERE telegram_id = ?", (telegram_id,)) as cursor:
+            row = await cursor.fetchone()
+            if row and row[0]:
+                return row[0]  # email value
+            return None
+
 
 
