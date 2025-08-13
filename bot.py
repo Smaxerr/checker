@@ -204,64 +204,21 @@ async def get_settings_kb(user_id):
     ])
     return keyboard
 
-@dp.callback_query(lambda c: c.data.startswith("toggle_screenshots:"))
-async def toggle_screenshots_handler(callback_query: CallbackQuery):
-    telegram_id = callback_query.from_user.id
-
-    # Get target value from callback_data
-    target_value = int(callback_query.data.split(":")[1])
-
-    # Update DB
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(
-            "UPDATE users SET screenshots_enabled = ? WHERE telegram_id = ?",
-            (target_value, telegram_id)
-        )
-        await db.commit()
-
-    # Send updated settings menu
-    kb = await get_settings_kb(telegram_id)
-    await callback_query.message.edit_text(
-        "⚙️ Settings Menu:",
-        reply_markup=kb
+async def init_db():
+    global db
+    db = await aiosqlite.connect(DB_PATH)
+    await db.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        telegram_id INTEGER PRIMARY KEY,
+        telegram_name TEXT,
+        email TEXT DEFAULT '',
+        ovo_id TEXT DEFAULT '',
+        ovo_amount TEXT DEFAULT '',
+        credits INTEGER DEFAULT 10,
+        screenshots_enabled INTEGER DEFAULT 1  -- 1 = True, 0 = False
     )
-
-    # Acknowledge the button press
-    await callback_query.answer("✅ Screenshots setting updated")
-
-
-@dp.callback_query(F.data == "settings")
-async def settings_menu(callback: CallbackQuery, state: FSMContext):
-    telegram_id = callback.from_user.id
-
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            "SELECT telegram_name, email, ovo_id, ovo_amount, screenshots_enabled FROM users WHERE telegram_id = ?", 
-            (telegram_id,)
-        )
-        row = await cursor.fetchone()
-
-    if row is None:
-        await callback.message.edit_text("⚠️ User data not found.")
-        return
-
-    username, email, ovo_id, ovo_amount, screenshots_enabled = row
-
-    profile_text = (
-        "🛠️ <b>My Profile</b>\n\n"
-        f"👤 Username: @{username if username else 'Not set'}\n"
-        f"📧 Email: {email if email else 'Not set'}\n"
-        f"🆔 OVO ID: {ovo_id if ovo_id else 'Not set'}\n"
-        f"💰 OVO Amount: {ovo_amount if ovo_amount else '0'}\n"
-        f"📸 Screenshots Enabled: {'Yes' if screenshots_enabled else 'No'}\n"
-    )
-
-    # Use your dynamic keyboard function here
-    kb = await get_settings_kb(telegram_id)
-
-    await callback.message.edit_text(profile_text, parse_mode="HTML", reply_markup=kb)
-    await state.clear()
-
+    """)
+    await db.commit()
 
 
 @dp.callback_query(F.data == "set_email")
@@ -512,6 +469,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
