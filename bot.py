@@ -228,7 +228,25 @@ async def settings_menu(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(profile_text, parse_mode="HTML", reply_markup=kb)
     await state.clear()
 
+@dp.callback_query(F.data.in_({"screenshots_on", "screenshots_off"}))
+async def toggle_screenshots(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    new_value = 1 if callback.data == "screenshots_on" else 0
 
+    # Update the database
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute(
+            "UPDATE users SET screenshots_enabled = ? WHERE telegram_id = ?",
+            (new_value, user_id)
+        )
+        await db.commit()
+
+    # Refresh the settings keyboard with updated value
+    kb = await get_settings_kb(user_id)
+
+    await callback.message.edit_reply_markup(reply_markup=kb)
+    await callback.answer("📸 Screenshots setting updated!")
+    
 @dp.callback_query(F.data == "set_email")
 async def set_email(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Please enter your new email:")
@@ -477,6 +495,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
