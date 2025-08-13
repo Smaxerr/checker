@@ -46,7 +46,10 @@ async def run_royalmailcharger(user_id: int, card_details: str):
                 return None, "NO_EMAIL"
 
             
-
+            try:
+                await page.click("#consent_prompt_decline", timeout=1000)  # 1 second max
+            except Exception:
+                pass  # button not found, ignore
 
             
             
@@ -104,6 +107,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
