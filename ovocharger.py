@@ -2,10 +2,6 @@ from playwright.async_api import async_playwright
 from database import get_ovo_id
 import asyncio
 
-import aiosqlite
-db: aiosqlite.Connection | None = None
-DB_PATH = "botdata.db"
-
 
 from faker import Faker
 faker = Faker("en_GB")
@@ -25,9 +21,7 @@ async def run_ovocharger(user_id: int, card_details: str):
         
         try:
 
-            ovo_id = await get_ovo_id(user_id)
-            if not ovo_id:
-                return None, "NO_OVO_ID"
+
 
             # Fake details
             name = faker.name()
@@ -76,6 +70,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
