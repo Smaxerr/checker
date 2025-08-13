@@ -67,9 +67,12 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             # Click Royal Mail 2nd Class
             await page.click("#OLP2", timeout=1000) # 1 second max
 
+            await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
+
             # Click Continue
             await page.locator("button[type='submit']").click()
 
+            await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
 
 
             
@@ -128,6 +131,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
