@@ -256,6 +256,7 @@ async def ovo_charger_start(callback: CallbackQuery, state: FSMContext):
     
 @dp.message(SettingsStates.waiting_for_ovo_cards)
 async def process_ovo_cards(message: Message, state: FSMContext):
+    user_id = message.from_user.id
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
 
@@ -437,6 +438,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
