@@ -106,7 +106,7 @@ async def set_screenshots_setting(telegram_id: int, enabled: bool):
 
 
 async def should_send_screenshot(user_id: int) -> bool:
-    async with aiosqlite.connect(DB_NAME) as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(
             "SELECT screenshots_enabled FROM users WHERE telegram_id = ?", (user_id,)
         )
@@ -115,6 +115,7 @@ async def should_send_screenshot(user_id: int) -> bool:
             return True  # default to sending screenshots if user not found
         screenshots_enabled = row[0]
         return bool(screenshots_enabled)
+
 
 
 
