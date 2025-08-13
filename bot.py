@@ -253,24 +253,24 @@ async def process_ovo_amount(message: Message, state: FSMContext):
 # Ovo Charger flow FSM
 
 @dp.callback_query(F.data == "ovo")
-async def ovo_charger_start(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
+async def ovo_charger_start(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line."
+    )
     await state.set_state(SettingsStates.waiting_for_ovo_cards)
     await callback.answer()
-    
+
 @dp.message(SettingsStates.waiting_for_ovo_cards)
-async def process_ovo_cards(message: Message, state: FSMContext):
+async def process_ovo_cards(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
 
     results = []
     for card in cards:
-        # Pass user_id along with card
         result, screenshot_bytes = await run_ovocharger(user_id, card)
 
         if screenshot_bytes:
-            # Write bytes to temp file and send photo
             with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
                 tmp.write(screenshot_bytes)
                 tmp.flush()
@@ -442,6 +442,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
