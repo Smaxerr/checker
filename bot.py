@@ -219,7 +219,6 @@ async def settings_menu(callback: CallbackQuery, state: FSMContext):
         f"📧 Email: {email if email else 'Not set'}\n"
         f"🆔 OVO ID: {ovo_id if ovo_id else 'Not set'}\n"
         f"💰 OVO Amount: {ovo_amount if ovo_amount is not None else '0'}\n"
-        f"📸 Screenshots Enabled: {'Yes' if screenshots_enabled else 'No'}\n"
     )
 
     # Use your dynamic keyboard function here
@@ -495,6 +494,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
