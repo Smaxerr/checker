@@ -308,11 +308,10 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
 
-    results = []
     for card in cards:
         credits = await get_credits(user_id)
         if credits < 1:
-            results.append(f"{card}: Skipped (Insufficient credits)")
+            await message.answer(f"{card}: Skipped (Insufficient credits)")
             continue  # skip this card
 
         # Deduct 1 credit
@@ -320,7 +319,7 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
         
         result, screenshot_bytes = await run_ovocharger(user_id, card)
 
-        # Check if screenshots are enabled
+        # Send screenshot if enabled
         if screenshot_bytes and await should_send_screenshot(user_id):
             with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
                 tmp.write(screenshot_bytes)
@@ -328,10 +327,12 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
                 photo = FSInputFile(tmp.name)
                 await message.answer_photo(photo=photo)
 
-        results.append(f"{card}: {result}")
+        # Send the result immediately
+        await message.answer(f"{card}: {result}")
 
-    await message.answer("\n".join(results))
     await state.clear()
+
+
 # Royalmail Charger flow FSM
 
 @dp.callback_query(F.data == "royalmail")
@@ -492,6 +493,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
