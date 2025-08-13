@@ -1,5 +1,6 @@
 import os
 import asyncio
+import html
 
 from database import get_credits, change_credits, get_screenshots_setting, set_screenshots_setting, should_send_screenshot
 
@@ -529,6 +530,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
