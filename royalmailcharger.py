@@ -127,8 +127,12 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             # Fill card number inside the iframe
             await frame.locator("#cardNumber").fill(cardnumber)
 
+            await frame.locator("input[name='cardholderName']").fill(name)
+            
 
-
+#            expiryDate.expiryMonth
+ #           expiryDate.expiryYear
+  #          securityCode
 
             
             
@@ -186,6 +190,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
