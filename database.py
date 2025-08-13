@@ -1,6 +1,5 @@
 import aiosqlite
 
-db: aiosqlite.Connection | None = None
 DB_PATH = "botdata.db"
 
 
@@ -55,14 +54,6 @@ async def get_all_users():
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT * FROM users") as cursor:
             return await cursor.fetchall()
-
-async def get_ovo_id(user_id: int) -> str | None:
-    if db is None:
-        raise RuntimeError("Database not initialized")
-    
-    async with db.execute("SELECT ovo_id FROM users WHERE telegram_id = ?", (user_id,)) as cursor:
-        row = await cursor.fetchone()
-        return row[0] if row and row[0] else None
 
 
 
