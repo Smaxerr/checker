@@ -85,7 +85,7 @@ async def run_ovocharger(card_details: str, user_id: str):
                 except:
                     continue
 
-           if screenshot_path and os.path.exists(screenshot_path):
+            if screenshot_path and os.path.exists(screenshot_path):
                 screenshot_file = FSInputFile(screenshot_path)
                 await message.answer_photo(screenshot_file, caption=f"Status: {status}")
             else:
@@ -109,4 +109,5 @@ if __name__ == "__main__":
     results = asyncio.run(process_multiple_cards(test_cards, user_id))
     for idx, (screenshot, status) in enumerate(results):
         print(f"Card {idx+1}: {status}, Screenshot: {screenshot}")
+
 
