@@ -308,6 +308,8 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
 
+    live_cards = []  # To store cards that are live
+
     for card in cards:
         credits = await get_credits(user_id)
         if credits < 1:
@@ -329,6 +331,17 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
 
         # Send the result immediately
         await message.answer(f"{card}: {result}")
+
+        # Check if the card is live (adjust your condition here)
+        if "LIVE" in result.upper():  
+            live_cards.append(card)
+
+    # Announce completion and show live cards
+    if live_cards:
+        live_text = "\n".join(live_cards)
+        await message.answer(f"✅ Processing complete!\nLive cards:\n{live_text}")
+    else:
+        await message.answer("✅ Processing complete! No live cards found.")
 
     await state.clear()
 
@@ -493,6 +506,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
