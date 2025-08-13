@@ -1,7 +1,7 @@
 from playwright.async_api import async_playwright
 import asyncio
 
-from database import get_ovo_id, get_ovo_amount, get_email
+from database import get_ovo_id, get_ovo_amount, get_email, change_credits, get_credits
 
 from faker import Faker
 faker = Faker("en_GB")
@@ -149,6 +149,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
