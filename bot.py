@@ -1,7 +1,7 @@
 import os
 import asyncio
 
-from database import get_credits
+from database import get_credits, change_credits
 
 from ovocharger import run_ovocharger
 from royalmailcharger import run_royalmailcharger
@@ -451,6 +451,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
