@@ -1,7 +1,7 @@
 from playwright.async_api import async_playwright
 import asyncio
 
-from database import get_ovo_id
+from database import get_ovo_id, get_ovo_amount
 
 from faker import Faker
 faker = Faker("en_GB")
@@ -28,8 +28,6 @@ async def run_ovocharger(user_id: int, card_details: str):
             card_number, exp_month, exp_year, cvv = card_parts
             if len(exp_year) == 2:
                 exp_year = "20" + exp_year
-    
-
 
             # Fake details
             name = faker.name()
@@ -45,8 +43,12 @@ async def run_ovocharger(user_id: int, card_details: str):
             if not ovo_id:
                 return None, "NO_OVO_ID"
 
+            ovo_amount = await get_ovo_amount(user_id)
+            if not ovo_amount:
+                return None, "NO_OVO_AMOUNT"
+
             await page.fill('#customerid', ovo_id)
-            await page.fill('#amount', '1')
+            await page.fill('#amount', 'ovo_amount')
             await page.fill('#cardholdername', name)
 
 
@@ -88,6 +90,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
