@@ -101,7 +101,7 @@ async def run_royalmailcharger(user_id: int, card_details: str):
 
             await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
 
-            await page.click("#PB")
+            #await page.click("#PB")
             
 
             
@@ -159,6 +159,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
