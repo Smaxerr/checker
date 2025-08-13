@@ -45,11 +45,30 @@ async def run_royalmailcharger(user_id: int, card_details: str):
                 await change_credits(user_id, +1)
                 return None, "NO_EMAIL"
 
-            
+            # Attempt to click Reject cookies
             try:
                 await page.click("#consent_prompt_decline", timeout=1000)  # 1 second max
             except Exception:
                 pass  # button not found, ignore
+
+            # Click Letter
+            await page.click("#Letter", timeout=1000) # 1 second max
+
+            # Click Continue
+            await page.click("#next_step_button", timeout=1000) # 1 second max
+
+            # Wait for page load
+            await page.wait_for_load_state("networkidle")  # waits until network is idle
+
+            # Click Royal Mail 2nd Class
+            await page.click("#OLP2", timeout=1000) # 1 second max
+
+            # Click Continue
+            await page.click("#next_step_button", timeout=1000) # 1 second max
+
+            # Wait for page load
+            await page.wait_for_load_state("networkidle")  # waits until network is idle
+        
 
             
             
@@ -107,6 +126,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
