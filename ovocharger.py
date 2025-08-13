@@ -1,6 +1,9 @@
 from playwright.async_api import async_playwright
 import asyncio
 
+from faker import Faker
+faker = Faker("en_GB")
+
 async def run_ovocharger(user_id: int, card_details: str):
     cardnumber, expirymonth, expiryyear, cvv = card_details.split('|')
 
@@ -13,7 +16,15 @@ async def run_ovocharger(user_id: int, card_details: str):
         page = await browser.new_page()
         await page.set_viewport_size({"width": 1280, "height": 720})
 
+        
         try:
+
+            # Fake details
+            name = faker.name()
+            address1 = faker.street_address()
+            city = faker.city()
+            postcode = faker.postcode()
+            
             await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment")
 
             await asyncio.sleep(2)  # small wait to ensure dynamic content loads fully
@@ -50,5 +61,6 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
