@@ -1,7 +1,7 @@
-import os
+import oss
 import asyncio
 
-from database import get_credits, change_credits, get_screenshot_settings, set_screenshot_settings
+from database import get_credits, change_credits, get_screenshots_setting, set_screenshots_setting
 
 from ovocharger import run_ovocharger
 from royalmailcharger import run_royalmailcharger
@@ -478,6 +478,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
