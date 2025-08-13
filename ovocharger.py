@@ -22,7 +22,7 @@ async def run_ovocharger(user_id: int, card_details: str):
         try:
             card_parts = card.strip().split("|")
             if len(card_parts) != 4:
-                print(f"[Invalid card format]: {card}")
+                print(f"[Invalid card format]: {card_details}")
                 return None, "INVALID"
     
             card_number, exp_month, exp_year, cvv = card_parts
@@ -88,6 +88,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
