@@ -145,14 +145,13 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             for frame in page.frames:
                 try:
                     content = await frame.content()
-                    text = content.lower()
-                    if "payment authorised" in text:
+                    if "payment authorised" in content.lower():
                         status = "LIVE"
                         break
-                    elif "Cancel" in text:
+                    elif "cancel" in content.lower():
                         status = "OTP"
                         break
-                    elif "declined" in text:
+                    elif "declined" in content.lower():
                         status = "DEAD"
                         break
                 except Exception:
@@ -195,6 +194,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
