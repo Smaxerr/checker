@@ -41,9 +41,9 @@ async def run_ovocharger(user_id: int, card_details: str):
             return f"Error: {e}", None
 
 
-async def process_multiple_cards(cards: list[str]):
+async def process_multiple_cards(cards: list[str], user_id: int):
     # Create a list of tasks, each runs independently
-    tasks = [run_ovocharger(card) for card in cards]
+    tasks = [run_ovocharger(card, user_id) for card in cards]
 
     # Run all tasks concurrently, gather results
     results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -62,6 +62,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
