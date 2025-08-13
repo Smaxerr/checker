@@ -1,5 +1,8 @@
 import aiosqlite
 
+import asyncpg
+pool: asyncpg.Pool | None = None  # global pool variable
+
 DB_PATH = "botdata.db"
 
 async def init_db():
@@ -62,4 +65,5 @@ async def get_ovo_id(user_id: int) -> str | None:
         if row and row['ovo_id']:
             return row['ovo_id']
         return None
+
 
