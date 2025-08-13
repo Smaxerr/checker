@@ -63,6 +63,9 @@ async def run_ovocharger(user_id: int, card_details: str):
             await page.fill('#postcode', postcode)
             await page.fill('#address1', address1)
             await page.fill('#city', city)
+            await page.fill('#emailForConfirmation', 'maxxxier@yahoo.com')
+            await page.fill('#mobileNumberForSmsConfirmation', '07454805800')
+            await page.check('input[name="AcceptedTermsAndConditions"]')
 
             screenshot_bytes = await page.screenshot(full_page=True)
 
@@ -96,6 +99,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
