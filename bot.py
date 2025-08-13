@@ -259,22 +259,22 @@ async def process_ovo_cards(message: Message, state: FSMContext):
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
 
-    results = []
-    for card in cards:
-        # Run the ovocharger for each card and get result + screenshot
-        result, screenshot_bytes = await run_ovocharger(card)
+    tasks = [
+        run_ovocharger(card, message.from_user.id)
+        for card in cards
+    ]
+    results = await asyncio.gather(*tasks)
 
+    for result, screenshot_bytes in results:
         if screenshot_bytes:
-            # Write bytes to temp file and send photo
             with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
                 tmp.write(screenshot_bytes)
                 tmp.flush()
                 photo = FSInputFile(tmp.name)
                 await message.answer_photo(photo=photo)
+        else:
+            await message.answer(result)
 
-        results.append(f"{card}: {result}")
-
-    await message.answer("\n".join(results))
     await state.clear()
     
 # Royalmail Charger flow FSM
@@ -437,6 +437,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
