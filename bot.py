@@ -273,7 +273,7 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
     for card in cards:
         
         
-        result, screenshot_bytes = await run_ovocharger(cards)
+        result, screenshot_bytes = await run_ovocharger(card)
         if screenshot_bytes:
             with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
                 tmp.write(screenshot_bytes)
@@ -446,6 +446,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
