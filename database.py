@@ -1,7 +1,5 @@
 import aiosqlite
 
-DB_PATH = "botdata.db"
-
 
 async def init_db():
     global db
@@ -54,6 +52,7 @@ async def get_all_users():
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT * FROM users") as cursor:
             return await cursor.fetchall()
+
 
 
 
