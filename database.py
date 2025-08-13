@@ -1,9 +1,8 @@
 import aiosqlite
 
-
+db: aiosqlite.Connection | None = None
 DB_PATH = "botdata.db"
 
-db: aiosqlite.Connection | None = None
 
 async def init_db():
     global db
@@ -64,6 +63,7 @@ async def get_ovo_id(user_id: int) -> str | None:
     async with db.execute("SELECT ovo_id FROM users WHERE telegram_id = ?", (user_id,)) as cursor:
         row = await cursor.fetchone()
         return row[0] if row and row[0] else None
+
 
 
 
