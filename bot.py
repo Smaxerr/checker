@@ -262,8 +262,8 @@ async def process_ovo_cards(message: Message, state: FSMContext):
 
     results = []
     for card in cards:
-        # Run the ovocharger for each card and get result + screenshot
-        result, screenshot_bytes = await run_ovocharger(card)
+        # Pass user_id along with card
+        result, screenshot_bytes = await run_ovocharger(user_id, card)
 
         if screenshot_bytes:
             # Write bytes to temp file and send photo
@@ -438,6 +438,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
