@@ -5,7 +5,7 @@ from database import get_ovo_id
 
 faker = Faker("en_GB")
 
-async def run_ovocharger(card_details: str):
+async def run_ovocharger(user_id: int, card_details: str):
     cardnumber, expirymonth, expiryyear, cvv = card_details.split('|')
 
     async with async_playwright() as p:
@@ -18,8 +18,7 @@ async def run_ovocharger(card_details: str):
         address1 = faker.street_address()
         city = faker.city()
         postcode = faker.postcode()
-        
-        user_id = message.from_user.id
+    
 
         try:
             await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment")
@@ -63,6 +62,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
