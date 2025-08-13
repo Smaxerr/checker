@@ -1,23 +1,24 @@
 import aiosqlite
 
-import asyncpg
-pool: asyncpg.Pool | None = None  # global pool variable
 
 DB_PATH = "botdata.db"
 
+db: aiosqlite.Connection | None = None
+
 async def init_db():
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            telegram_id INTEGER PRIMARY KEY,
-            telegram_name TEXT,
-            email TEXT DEFAULT '',
-            ovo_id TEXT DEFAULT '',
-            ovo_amount TEXT DEFAULT '',
-            credits INTEGER DEFAULT 0
-        )
-        """)
-        await db.commit()
+    global db
+    db = await aiosqlite.connect(DB_PATH)
+    await db.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        telegram_id INTEGER PRIMARY KEY,
+        telegram_name TEXT,
+        email TEXT DEFAULT '',
+        ovo_id TEXT DEFAULT '',
+        ovo_amount TEXT DEFAULT '',
+        credits INTEGER DEFAULT 0
+    )
+    """)
+    await db.commit()
 
 async def get_user(telegram_id):
     async with aiosqlite.connect(DB_PATH) as db:
@@ -57,13 +58,12 @@ async def get_all_users():
             return await cursor.fetchall()
 
 async def get_ovo_id(user_id: int) -> str | None:
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT ovo_id FROM users WHERE id = $1",
-            user_id,
-        )
-        if row and row['ovo_id']:
-            return row['ovo_id']
-        return None
+    if db is None:
+        raise RuntimeError("Database not initialized")
+    
+    async with db.execute("SELECT ovo_id FROM users WHERE telegram_id = ?", (user_id,)) as cursor:
+        row = await cursor.fetchone()
+        return row[0] if row and row[0] else None
+
 
 
