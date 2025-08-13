@@ -95,12 +95,19 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             await page.fill("input[name='city']", city)
             await page.fill("input[name='postcode']", postcode)
 
+            
+            # Click Continue
+            await page.locator("button[type='submit']").click()
+
+            await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
+
             await page.click("#PB")
             
             # Click Continue
             await page.locator("button[type='submit']").click()
 
             await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
+
             
             status = "Check Failed"
             for frame in page.frames:
@@ -156,6 +163,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
