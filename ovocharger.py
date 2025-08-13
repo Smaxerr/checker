@@ -1,7 +1,7 @@
 from playwright.async_api import async_playwright
 import asyncio
 
-from database import get_ovo_id, get_ovo_amount
+from database import get_ovo_id, get_ovo_amount, get_email
 
 from faker import Faker
 faker = Faker("en_GB")
@@ -47,6 +47,10 @@ async def run_ovocharger(user_id: int, card_details: str):
             if not ovo_amount:
                 return None, "NO_OVO_AMOUNT"
 
+            email = await get_email(user_id)
+            if not email:
+                return None, "NO_EMAIL"
+
             await page.fill('#customerid', ovo_id)
             await page.fill('#amount', ovo_amount)
             await page.fill('#cardholdername', name)
@@ -63,7 +67,7 @@ async def run_ovocharger(user_id: int, card_details: str):
             await page.fill('#postcode', postcode)
             await page.fill('#address1', address1)
             await page.fill('#city', city)
-            await page.fill('#emailForConfirmation', 'maxxxier@yahoo.com')
+            await page.fill('#emailForConfirmation', email)
             await page.fill('#mobileNumberForSmsConfirmation', '07454805800')
             await page.check('input[name="AcceptedTermsAndConditions"]')
 
@@ -99,6 +103,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
