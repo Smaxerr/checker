@@ -94,6 +94,8 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             await page.fill("input[name='addressLine1']", address1)
             await page.fill("input[name='city']", city)
             await page.fill("input[name='postcode']", postcode)
+
+            await page.click("#PB")
             
             # Click Continue
             await page.locator("button[type='submit']").click()
@@ -154,6 +156,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
