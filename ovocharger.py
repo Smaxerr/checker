@@ -14,7 +14,7 @@ async def run_ovocharger(user_id: int, card_details: str):
         await page.set_viewport_size({"width": 1280, "height": 720})
 
         try:
-            await page.goto("https://send.dpd.co.uk/order?step=parcelDetails")
+            await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment")
 
             await asyncio.sleep(2)  # small wait to ensure dynamic content loads fully
 
@@ -50,4 +50,5 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
