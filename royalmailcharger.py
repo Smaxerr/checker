@@ -149,7 +149,7 @@ async def run_royalmailcharger(user_id: int, card_details: str):
                     if "payment authorised" in text:
                         status = "LIVE"
                         break
-                    elif any(w in text for w in ["verify", "otp", "authorise"]):
+                    elif any(w in text for w in ["", ""]):
                         status = "OTP"
                         break
                     elif "declined" in text:
@@ -195,6 +195,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
