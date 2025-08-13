@@ -57,9 +57,6 @@ async def run_royalmailcharger(user_id: int, card_details: str):
             # Click Continue
             await page.locator("button[type='submit']").click()
 
-            # Wait for page load
-            #await asynchio.sleep(1)  # waits 1 second
-
             # Clicks show more
             try:
                 await page.locator("button[data-testid='services-show-more-less-options']").click(timeout=1000)
@@ -67,15 +64,13 @@ async def run_royalmailcharger(user_id: int, card_details: str):
                 # Button not found, continue
                 pass
 
-
             # Click Royal Mail 2nd Class
-            #await page.click("#OLP2", timeout=1000) # 1 second max
+            await page.click("#OLP2", timeout=1000) # 1 second max
 
             # Click Continue
-            #await page.click("#next_step_button", timeout=1000) # 1 second max
+            await page.locator("button[type='submit']").click()
 
-            # Wait for page load
-            #await page.wait_for_load_state("networkidle")  # waits until network is idle
+
 
             
             
@@ -133,6 +128,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
