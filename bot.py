@@ -1,7 +1,7 @@
 import os
 import asyncio
 
-
+from database import get_credits, change_credits
 
 from ovocharger import run_ovocharger
 from royalmailcharger import run_royalmailcharger
@@ -271,7 +271,14 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
 
     results = []
     for card in cards:
-        
+
+        credits = await get_credits(user_id)
+        if credits < 1:
+            results.append(f"{card}: Skipped (Insufficient credits)")
+            continue  # skip this card
+
+        # Deduct 1 credit
+        await change_credits(user_id, -1)
         
         result, screenshot_bytes = await run_ovocharger(user_id, card)
         if screenshot_bytes:
@@ -446,6 +453,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
