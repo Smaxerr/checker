@@ -1,6 +1,7 @@
 import os
 import asyncio
 
+
 from database import get_credits, change_credits
 
 from ovocharger import run_ovocharger
@@ -37,6 +38,7 @@ bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
 
 DB_NAME = "users.db"
+DB_PATH = "users.db"  # or full path if needed
 
 # Main and settings keyboards
 main_kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -270,8 +272,9 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
 
     results = []
     for card in cards:
-        credits = await get_credits(user_id)
-        if credits < 1:
+        
+        checkcredits = await get_credits(user_id)
+        if checkcredits < 1:
             results.append(f"{card}: Skipped (Insufficient credits)")
             continue  # skip this card
 
@@ -451,6 +454,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
