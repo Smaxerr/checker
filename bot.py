@@ -349,32 +349,54 @@ async def process_ovo_cards(message: types.Message, state: FSMContext):
 # Royalmail Charger flow FSM
 
 @dp.callback_query(F.data == "royalmail")
-async def royalmail_charger_start(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line.")
+async def royalmail_charger_start(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Send your test card(s) in format:\ncardnumber|expirymonth|expiryyear|cvv\nOne per line."
+    )
     await state.set_state(SettingsStates.waiting_for_royalmail_cards)
     await callback.answer()
-    
+
 @dp.message(SettingsStates.waiting_for_royalmail_cards)
-async def process_royalmail_cards(message: Message, state: FSMContext):
+async def process_royalmail_cards(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
     cards = message.text.strip().split("\n")
     await message.answer(f"Received {len(cards)} card(s). Processing now...")
 
-    results = []
-    for card in cards:
-        # Run the royalmailcharger for each card and get result + screenshot
-        result, screenshot_bytes = await run_royalmailcharger(card)
+    live_cards = []  # To store cards that are live
 
-        if screenshot_bytes:
-            # Write bytes to temp file and send photo
+    for card in cards:
+        credits = await get_credits(user_id)
+        if credits < 1:
+            await message.answer(f"{card}: Skipped (Insufficient credits)")
+            continue  # skip this card
+
+        # Deduct 1 credit
+        await change_credits(user_id, -1)
+        
+        result, screenshot_bytes = await run_royalmailcharger(user_id, card)
+
+        # Send screenshot if enabled
+        if screenshot_bytes and await should_send_screenshot(user_id):
             with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
                 tmp.write(screenshot_bytes)
                 tmp.flush()
                 photo = FSInputFile(tmp.name)
                 await message.answer_photo(photo=photo)
 
-        results.append(f"{card}: {result}")
+        # Send the result immediately
+        await message.answer(f"{card}: {result}")
 
-    await message.answer("\n".join(results))
+        # Check if the card is live (adjust your condition here)
+        if "LIVE" in result.upper():  
+            live_cards.append(card)
+
+    # Announce completion and show live cards
+    if live_cards:
+        live_text = "\n".join(live_cards)
+        await message.answer(f"✅ Processing complete!\nLive cards:\n{live_text}")
+    else:
+        await message.answer("✅ Processing complete! No live cards found.")
+
     await state.clear()
 
 # DPD Charger flow FSM
@@ -506,6 +528,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
