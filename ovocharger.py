@@ -138,10 +138,11 @@ if __name__ == "__main__":
         # more cards
     ]
 
-    results = asyncio.run(process_multiple_cards(test_cards))
+    results = asyncio.run(process_multiple_cards(user_id, test_cards))
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
