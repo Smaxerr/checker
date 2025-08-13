@@ -27,7 +27,12 @@ async def run_ovocharger(user_id: int, card_details: str):
             
             await page.goto("https://ovoenergypayments.paypoint.com/GuestPayment")
 
-            await asyncio.sleep(2)  # small wait to ensure dynamic content loads fully
+            await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
+
+            await page.fill('#cardholdername', name)
+            await page.fill('#postcode', postcode)
+            await page.fill('#address1', address1)
+            await page.fill('#city', city)
 
             screenshot_bytes = await page.screenshot(full_page=True)
 
@@ -61,6 +66,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
