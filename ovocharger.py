@@ -20,6 +20,10 @@ async def run_ovocharger(user_id: int, card_details: str):
 
         
         try:
+
+            if status in ["NO_OVO_ID", "NO_OVO_AMOUNT", "NO_EMAIL", "INVALID", "Error", "Unknown"]:
+            await change_credits(user_id, +1)  # refund the credit
+            
             card_parts = card_details.strip().split("|")
             if len(card_parts) != 4:
                 print(f"[Invalid card format]: {card_details}")
@@ -142,6 +146,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
