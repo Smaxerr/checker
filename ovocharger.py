@@ -32,6 +32,11 @@ async def run_ovocharger(user_id: int, card_details: str):
 
             await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
 
+            ovo_id = await get_ovo_id(user_id)
+            if not ovo_id:
+                return None, "NO_OVO_ID"
+
+            await page.fill('#customerid', ovo_id)
             await page.fill('#cardholdername', name)
             await page.fill('#postcode', postcode)
             await page.fill('#address1', address1)
@@ -69,6 +74,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
