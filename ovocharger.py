@@ -20,9 +20,6 @@ async def run_ovocharger(user_id: int, card_details: str):
 
         
         try:
-
-            if status in ["NO_OVO_ID", "NO_OVO_AMOUNT", "NO_EMAIL", "INVALID", "Error", "Unknown"]:
-            await change_credits(user_id, +1)  # refund the credit
             
             card_parts = card_details.strip().split("|")
             if len(card_parts) != 4:
@@ -45,14 +42,17 @@ async def run_ovocharger(user_id: int, card_details: str):
 
             ovo_id = await get_ovo_id(user_id)
             if not ovo_id:
+                await change_credits(user_id, +1)
                 return None, "NO_OVO_ID"
 
             ovo_amount = await get_ovo_amount(user_id)
             if not ovo_amount:
+                await change_credits(user_id, +1)
                 return None, "NO_OVO_AMOUNT"
 
             email = await get_email(user_id)
             if not email:
+                await change_credits(user_id, +1)
                 return None, "NO_EMAIL"
 
             await page.fill('#customerid', ovo_id)
@@ -95,7 +95,7 @@ async def run_ovocharger(user_id: int, card_details: str):
 
             await page.wait_for_timeout(15000)  # brief pause after click
             
-            status = "UNKNOWN"
+            status = "Check Failed"
             for frame in page.frames:
                 try:
                     content = await frame.content()
@@ -112,6 +112,9 @@ async def run_ovocharger(user_id: int, card_details: str):
                 except Exception:
                     continue
 
+            # Refund credit if status is unknown
+            if status == "Check Failed":
+                await change_credits(user_id, +1)
 
             
 
@@ -146,6 +149,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
