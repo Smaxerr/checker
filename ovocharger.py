@@ -9,7 +9,10 @@ async def run_ovocharger(user_id: int, card_details: str):
     cardnumber, expirymonth, expiryyear, cvv = card_details.split('|')
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+        )
         page = await browser.new_page()
         await page.set_viewport_size({"width": 1280, "height": 720})
         
@@ -62,6 +65,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
