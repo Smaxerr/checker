@@ -104,12 +104,21 @@ async def run_royalmailcharger(user_id: int, card_details: str):
 
             await asyncio.sleep(1)  # small wait to ensure dynamic content loads fully
             
-            if await page.locator("#PB").count() > 0:
-                await page.click("#PB")
-            elif await page.locator("#other").count() > 0:
-                await page.click("#other")
-            else:
-                print("Neither PB nor other found")
+            # Wait up to 5 seconds for either PB or other
+            clicked = False
+            for _ in range(5):  # try every 1 second
+                if await page.locator("#PB").count() > 0:
+                    await page.locator("#PB").click()
+                    clicked = True
+                    break
+                elif await page.locator("#other").count() > 0:
+                    await page.locator("#other").click()
+                    clicked = True
+                    break
+                await asyncio.sleep(1)  # wait 1 second before checking again
+            
+            if not clicked:
+                print("Neither PB nor other appeared within 5 seconds")
 
             # Click Continue
             await page.locator("button[type='submit']").click()
@@ -194,6 +203,7 @@ if __name__ == "__main__":
     for idx, (result, screenshot) in enumerate(results):
         print(f"Card {idx+1} result: {result}")
         # optionally save screenshots
+
 
 
 
