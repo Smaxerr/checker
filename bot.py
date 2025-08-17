@@ -446,6 +446,65 @@ async def process_dpd_cards(message: Message, state: FSMContext):
     await message.answer("\n".join(results))
     await state.clear()
 
+@dp.callback_query(F.data == "autobuy_bins")
+async def show_autobuy_bins(callback: CallbackQuery, state: FSMContext):
+    user_id = callback.from_user.id
+    bins = await get_autobuy_bins(user_id)
+    bin_text = "\n".join(bins) if bins else "No autobuy BINs yet."
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="➕ Add BIN", callback_data="add_autobuy_bin")],
+        [InlineKeyboardButton(text="➖ Remove BIN", callback_data="remove_autobuy_bin")],
+        [InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_main")]
+    ])
+    await callback.message.edit_text(f"📦 Autobuy BINs:\n\n{bin_text}", reply_markup=keyboard)
+
+@dp.callback_query(F.data == "add_autobuy_bin")
+async def start_add_autobuy_bin(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("🔢 Send the 6-digit BIN you want to autobuy:")
+    await state.set_state(AutobuyStates.waiting_for_autobuy_bin_add)
+
+@dp.message(AutobuyStates.waiting_for_autobuy_bin_add)
+async def process_add_autobuy_bin(msg: Message, state: FSMContext):
+    bin_code = msg.text.strip()
+    if not bin_code.isdigit() or len(bin_code) != 6:
+        return await msg.reply("❌ Please send a valid 6-digit BIN.")
+    
+    await add_autobuy_bin(msg.from_user.id, bin_code)
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="➕ Add Another", callback_data="add_autobuy_bin")],
+        [InlineKeyboardButton(text="⬅️ Back to Menu", callback_data="back_to_main")]
+    ])
+
+    await msg.reply(f"✅ BIN `{bin_code}` has been added to autobuy list.", parse_mode="Markdown", reply_markup=keyboard)
+    await state.clear()
+
+@dp.callback_query(F.data == "remove_autobuy_bin")
+async def start_remove_autobuy_bin(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("✏️ Send the BIN you want to remove from autobuy list:")
+    await state.set_state(AutobuyStates.waiting_for_autobuy_bin_remove)
+
+@dp.message(AutobuyStates.waiting_for_autobuy_bin_remove)
+async def process_remove_autobuy_bin(msg: Message, state: FSMContext):
+    bin_code = msg.text.strip()
+    if not bin_code.isdigit() or len(bin_code) != 6:
+        return await msg.reply("❌ Please send a valid 6-digit BIN.")
+    
+    await remove_autobuy_bin(msg.from_user.id, bin_code)
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="➖ Remove another BIN", callback_data="remove_autobuy_bin")],
+        [InlineKeyboardButton(text="⬅️ Back to Menu", callback_data="back_to_main")]
+    ])
+
+    await msg.reply(f"✅ BIN `{bin_code}` has been removed from autobuy list.", parse_mode="Markdown", reply_markup=keyboard)
+    await state.clear()
+
+
+
+
+
 @dp.message(Command("viewusers"))
 async def view_users(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -544,6 +603,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
