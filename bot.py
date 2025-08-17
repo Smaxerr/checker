@@ -207,7 +207,7 @@ async def get_settings_kb(user_id):
     ])
     return keyboard
 
-@router.callback_query(F.data == "store")
+@dp.callback_query(F.data == "store")
 async def open_store(callback: CallbackQuery):
     await callback.message.edit_text("🛒 Welcome to the Store!", reply_markup=store_kb())
 
@@ -544,6 +544,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
