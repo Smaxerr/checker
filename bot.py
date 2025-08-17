@@ -209,8 +209,8 @@ async def get_settings_kb(user_id):
 
 @dp.callback_query(F.data == "store")
 async def open_store(callback: CallbackQuery):
-    await callback.message.edit_text("🛒 Welcome to the Store!", reply_markup=store_kb())
-
+    await callback.message.edit_text("🛒 Welcome to the Store!", reply_markup=store_kb)
+    
 @dp.callback_query(F.data == "settings")
 async def settings_menu(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
@@ -544,6 +544,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
