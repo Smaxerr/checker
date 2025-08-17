@@ -3,6 +3,7 @@ import asyncio
 import html
 
 from database import get_credits, change_credits, get_screenshots_setting, set_screenshots_setting, should_send_screenshot
+from database import get_autobuy_bins, set_autobuy_bins, add_autobuy_bin, remove_autobuy_bin
 
 from ovocharger import run_ovocharger
 from royalmailcharger import run_royalmailcharger
@@ -58,7 +59,7 @@ settings_kb = InlineKeyboardMarkup(inline_keyboard=[
 
 store_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="🔑Razor API Key", callback_data="#")],
-    [InlineKeyboardButton(text="📃Autobuy List", callback_data="#")],
+    [InlineKeyboardButton(text="📃Autobuy List", callback_data="autobuy_bins")],
     [InlineKeyboardButton(text="🚀RUN Autobuy", callback_data="#")],
     [InlineKeyboardButton(text="🚫STOP Autobuy", callback_data="#")],
     [InlineKeyboardButton(text="🏦Bin Bank", callback_data="#")],
@@ -73,6 +74,8 @@ class SettingsStates(StatesGroup):
     waiting_for_ovo_cards = State()
     waiting_for_royalmail_cards = State()
     waiting_for_dpd_cards = State()
+    waiting_for_autobuy_bin_add = State()
+    waiting_for_autobuy_bin_remove = State()
 
 HELP_TEXT = """
 🤖 *Bot Setup & Usage Guide*
@@ -603,6 +606,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
