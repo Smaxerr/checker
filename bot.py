@@ -57,11 +57,11 @@ settings_kb = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 store_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="🔑Razor API Key", callback_data="")],
-    [InlineKeyboardButton(text="📃Autobuy List", callback_data="")],
-    [InlineKeyboardButton(text="🚀RUN Autobuy", callback_data="")],
-    [InlineKeyboardButton(text="🚫STOP Autobuy", callback_data="")],
-    [InlineKeyboardButton(text="🏦Bin Bank", callback_data="")],
+    [InlineKeyboardButton(text="🔑Razor API Key", callback_data="#")],
+    [InlineKeyboardButton(text="📃Autobuy List", callback_data="#")],
+    [InlineKeyboardButton(text="🚀RUN Autobuy", callback_data="#")],
+    [InlineKeyboardButton(text="🚫STOP Autobuy", callback_data="#")],
+    [InlineKeyboardButton(text="🏦Bin Bank", callback_data="#")],
     [InlineKeyboardButton(text="🔙Back to Main Menu", callback_data="back_main")],
 ])
 
@@ -544,6 +544,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
