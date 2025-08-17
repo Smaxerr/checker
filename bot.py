@@ -42,17 +42,27 @@ DB_PATH = "users.db"  # or full path if needed
 
 # Main and settings keyboards
 main_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="OVO Charger", callback_data="ovo")],
-    [InlineKeyboardButton(text="RoyalMail Charger", callback_data="royalmail")],
-    [InlineKeyboardButton(text="DPD Charger", callback_data="dpd")],
-    [InlineKeyboardButton(text="Settings", callback_data="settings")],
+    [InlineKeyboardButton(text="⚡️OVO Charger", callback_data="ovo")],
+    #[InlineKeyboardButton(text="RoyalMail Charger", callback_data="royalmail")],
+    #[InlineKeyboardButton(text="DPD Charger", callback_data="dpd")],
+    [InlineKeyboardButton(text="⚙️Settings", callback_data="settings")],
+    [InlineKeyboardButton(text="🛍️Store", callback_data="store")],
 ])
 
 settings_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Change Email", callback_data="set_email")],
-    [InlineKeyboardButton(text="Change Ovo ID", callback_data="set_ovo_id")],
-    [InlineKeyboardButton(text="Change Ovo Amount", callback_data="set_ovo_amount")],
-    [InlineKeyboardButton(text="Back to Main Menu", callback_data="back_main")],
+    [InlineKeyboardButton(text="📥Change Email", callback_data="set_email")],
+    [InlineKeyboardButton(text="🆔Change Ovo ID", callback_data="set_ovo_id")],
+    [InlineKeyboardButton(text="🔢Change Ovo Amount", callback_data="set_ovo_amount")],
+    [InlineKeyboardButton(text="🔙Back to Main Menu", callback_data="back_main")],
+])
+
+store_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="🔑Razor API Key", callback_data="")],
+    [InlineKeyboardButton(text="📃Autobuy List", callback_data="")],
+    [InlineKeyboardButton(text="🚀RUN Autobuy", callback_data="")],
+    [InlineKeyboardButton(text="🚫STOP Autobuy", callback_data="")],
+    [InlineKeyboardButton(text="🏦Bin Bank", callback_data="")],
+    [InlineKeyboardButton(text="🔙Back to Main Menu", callback_data="back_main")],
 ])
 
 # FSM states for settings
@@ -196,6 +206,10 @@ async def get_settings_kb(user_id):
         [InlineKeyboardButton(text="Back to Main Menu", callback_data="back_main")],
     ])
     return keyboard
+
+@router.callback_query(F.data == "store")
+async def open_store(callback: CallbackQuery):
+    await callback.message.edit_text("🛒 Welcome to the Store!", reply_markup=store_kb())
 
 @dp.callback_query(F.data == "settings")
 async def settings_menu(callback: CallbackQuery, state: FSMContext):
@@ -530,6 +544,7 @@ async def main():
     
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
